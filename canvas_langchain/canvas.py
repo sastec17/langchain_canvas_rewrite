@@ -1,18 +1,20 @@
+import logging
 from canvasapi import Canvas
 
 from langchain.docstore.document import Document
 from langchain.document_loaders.base import BaseLoader
 from typing import List
-from sections.syllabus import load_syllabus
+from canvas_langchain.sections.syllabus import load_syllabus
 from urllib.parse import urljoin
 
+logger = logging.getLogger(__name__)
 
 class CanvasLoader(BaseLoader):
     def __init__(self,
                  api_url: str,
                  api_key: str,
                  course_id: int, 
-                 index_external_urls: bool):
+                 index_external_urls: bool=False):
         self.api_url = api_url
         self.api_key = api_key
         # TODO: DOES THIS NEED TO BE A MEMBER VARIABLE? 
@@ -23,17 +25,27 @@ class CanvasLoader(BaseLoader):
         self.course = self.canvas.get_course(self.course_id,
                                              include=['syllabus_body'])
         self.docs = []
-        return
-    
+        self.invalid_files = []
+        self.progress = []
+
     def load(self) -> List[Document]:
         try:
             metadata = {
                 "canvas": self.canvas,
                 "course": self.course,
+                "logger": logger,
                 "course_api": urljoin(self.api_url, f'/courses/{self.course.id}')
             }
             # load syllabus
+            logger.info("Attempting to load syllabus\n")
+            print("attempting to load syllabus")
             self.docs.extend(load_syllabus(metadata))
+            print("out here")
+
         except:
             print("Something went wrong")
         return self.docs
+
+    def get_details(arg):
+        return "No details here"
+    
