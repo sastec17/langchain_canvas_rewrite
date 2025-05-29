@@ -5,6 +5,7 @@ from langchain.docstore.document import Document
 from langchain.document_loaders.base import BaseLoader
 from typing import List
 from canvas_langchain.sections.syllabus import load_syllabus
+from canvas_langchain.sections.assignments import load_assignments
 from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class CanvasLoader(BaseLoader):
         self.course = self.canvas.get_course(self.course_id,
                                              include=['syllabus_body'])
         self.docs = []
+        self.indexed_items = set()
         self.invalid_files = []
         self.progress = []
 
@@ -33,17 +35,28 @@ class CanvasLoader(BaseLoader):
             metadata = {
                 "canvas": self.canvas,
                 "course": self.course,
-                "logger": logger,
-                "course_api": urljoin(self.api_url, f'/courses/{self.course.id}')
+                "course_api": urljoin(self.api_url, f'/courses/{self.course.id}'),
+                "indexed_items": self.indexed_items,
+                "logger": logger
             }
             # load syllabus
-            logger.info("Attempting to load syllabus\n")
-            print("attempting to load syllabus")
             self.docs.extend(load_syllabus(metadata))
-            print("out here")
 
-        except:
-            print("Something went wrong")
+            # available course navigation tabs
+            available_tabs = [tab.label for tab in self.course.get_tabs()]
+
+            # TODO: INVESTIGATE IF MATCH+CASE OR IF/ELIF IS BETTER HERE
+            load_actions = {
+                'Assignments': lambda: load_assignments(metadata)
+            }
+
+            for tab_name, loader_func in load_actions.items():
+                if tab_name in available_tabs:
+                    self.docs.extend(loader_func())
+                return
+
+        except Exception as error:
+            print("Something went wrong", error)
         return self.docs
 
     def get_details(arg):

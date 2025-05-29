@@ -1,7 +1,7 @@
 import os
-from bs4 import BeautifulSoup, PageElement, ResultSet
-from urllib.parse import parse_qs, urlparse, urljoin
-from canvasapi.exceptions import CanvasException, ResourceDoesNotExist
+from bs4 import BeautifulSoup
+from urllib.parse import parse_qs, urlparse
+from canvasapi.exceptions import CanvasException
 
 
 def parse_html_for_text_and_urls(canvas, course, html):
@@ -40,6 +40,7 @@ def _get_embed_url_via_uuid(canvas, course, url: str):
         except CanvasException as error:
             print("ERROR WITH UUID", error)
     return url
+
 
 def _get_embed_url_direct(url: str):
     """Extracts embedded resource URL from Canvas (LTI 1.1 styling)"""
