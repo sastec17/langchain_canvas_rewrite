@@ -8,6 +8,7 @@ from canvas_langchain.sections.syllabus import load_syllabus
 from canvas_langchain.sections.assignments import load_assignments
 from canvas_langchain.sections.announcements import load_announcements
 from canvas_langchain.sections.pages import load_pages
+from canvas_langchain.sections.files import load_files
 from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class CanvasLoader(BaseLoader):
             load_actions = {
                 'Announcements': lambda: load_announcements(metadata),
                 'Assignments': lambda: load_assignments(metadata),
+                'Files': lambda: load_files(metadata),
                 'Pages': lambda: load_pages(metadata),
             }
 
