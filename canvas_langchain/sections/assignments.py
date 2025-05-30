@@ -36,8 +36,12 @@ def load_assignment(data: Dict[str, any], assignment: PaginatedList) -> List[Doc
         f"Assignment Description: {assignment_description}\n"
     )
 
-    formatted_data = format_data(doc_content=assignment_content, 
-                                 doc=assignment, 
-                                 doc_type='assignment', 
-                                 embed_urls=embed_urls)
+    metadata={"content":assignment_content,
+              "data": {"filename": assignment.name,
+                       "source": assignment.html_url,
+                       "kind": "assignment",
+                       "id": assignment.id}
+                }
+    formatted_data = format_data(metadata=metadata, embed_urls=embed_urls)
+    
     return formatted_data

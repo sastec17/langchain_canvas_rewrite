@@ -15,12 +15,17 @@ def load_announcements(data: Dict[str, any]) -> List[Document]:
 
         for announcement in announcements:
             (announcement_text, embed_urls) = parse_html_for_text_and_urls(data["canvas"],
-                                                                           data["course"],
-                                                                           announcement.message)
-            formatted_data = format_data(doc_content=announcement_text, 
-                                         doc=announcement, 
-                                         doc_type='announcement', 
-                                         embed_urls=embed_urls)
+                                                                         data["course"],
+                                                                         announcement.message)
+            metadata={"content": announcement_text,
+                      "data": {"filename": announcement.title,
+                              "source": announcement.html_url,
+                              "kind": "announcement",
+                              "id": announcement.id}
+                      }
+            
+            formatted_data = format_data(metadata=metadata, embed_urls=embed_urls)
+                                                                                                                   
             announcement_documents.extend(formatted_data)
 
     except CanvasException as error: 
