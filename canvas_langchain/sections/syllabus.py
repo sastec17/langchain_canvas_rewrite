@@ -1,9 +1,10 @@
 from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
 from canvas_langchain.utils.common import format_data
 from langchain.docstore.document import Document
+from typing import Dict, List
 from urllib.parse import urljoin
 
-def load_syllabus(data):
+def load_syllabus(data: Dict[str, any]) -> List[Document]:
     if data['course'].syllabus_body: 
         try:
             (syllabus_text, embed_urls) = parse_html_for_text_and_urls(canvas=data['canvas'],

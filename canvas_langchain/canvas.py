@@ -7,6 +7,7 @@ from typing import List
 from canvas_langchain.sections.syllabus import load_syllabus
 from canvas_langchain.sections.assignments import load_assignments
 from canvas_langchain.sections.announcements import load_announcements
+from canvas_langchain.sections.pages import load_pages
 from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,8 @@ class CanvasLoader(BaseLoader):
             # TODO: INVESTIGATE IF MATCH+CASE OR IF/ELIF IS BETTER HERE
             load_actions = {
                 'Announcements': lambda: load_announcements(metadata),
-                'Assignments': lambda: load_assignments(metadata)
+                'Assignments': lambda: load_assignments(metadata),
+                'Pages': lambda: load_pages(metadata),
             }
 
             for tab_name, loader_func in load_actions.items():
