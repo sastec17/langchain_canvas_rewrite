@@ -8,10 +8,10 @@ from typing import List
 from urllib.parse import urljoin
 
 class PageLoader(BaseSectionLoader):
-    def __init__(self, canvas, course, indexed_items, api_url):
+    def __init__(self, canvas, course, indexed_items, course_api):
         super().__init__(canvas, course)
         self.indexed_items = indexed_items
-        self.course_api = urljoin(api_url, f'/courses/{self.course.id}')
+        self.course_api = course_api
 
     def load_all(self) -> List[Document]:
         page_documents = []

@@ -4,7 +4,6 @@ class BaseSectionLoader:
     def __init__(self, canvas, course):
         self.canvas = canvas
         self.course = course
-        print("INITIALIZING HERE")
         return
     
     def parse_html(self, html):

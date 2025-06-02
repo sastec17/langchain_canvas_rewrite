@@ -19,7 +19,7 @@ class AssignmentLoader(BaseSectionLoader):
             for doc in assignments:
                 if f"Assignment:{doc.id}" not in self.indexed_items:
                     self.indexed_items.add(f"Assignment:{doc.id}")
-                    assignment_documents.extend(self._load_assignment(doc))
+                    assignment_documents.extend(self.load_assignment(doc))
 
         except CanvasException as error:
             print("Error loading assignments", error)
