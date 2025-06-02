@@ -11,6 +11,7 @@ from canvas_langchain.sections.pages import load_pages
 from canvas_langchain.sections.files import load_files
 from urllib.parse import urljoin
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class CanvasLoader(BaseLoader):
@@ -28,32 +29,27 @@ class CanvasLoader(BaseLoader):
         self.canvas = Canvas(api_url, api_key)
         self.course = self.canvas.get_course(self.course_id,
                                              include=['syllabus_body'])
+        self.course_api = urljoin(self.api_url, f'/courses/{self.course.id}')
         self.docs = []
         self.indexed_items = set()
         self.invalid_files = []
         self.progress = []
 
     def load(self) -> List[Document]:
+        logger.info("Starting document loading process")
         try:
-            metadata = {
-                "canvas": self.canvas,
-                "course": self.course,
-                "course_api": urljoin(self.api_url, f'/courses/{self.course.id}'),
-                "indexed_items": self.indexed_items,
-                "logger": logger
-            }
             # load syllabus
-            self.docs.extend(load_syllabus(metadata))
+            self.docs.extend(load_syllabus(self))
 
-            # available course navigation tabs
+            # get available course navigation tabs
             available_tabs = [tab.label for tab in self.course.get_tabs()]
 
             # TODO: INVESTIGATE IF MATCH+CASE OR IF/ELIF IS BETTER HERE
             load_actions = {
-                'Announcements': lambda: load_announcements(metadata),
-                'Assignments': lambda: load_assignments(metadata),
-                'Files': lambda: load_files(metadata),
-                'Pages': lambda: load_pages(metadata),
+                'Announcements': load_announcements(),
+                'Assignments': lambda: load_assignments(self),
+                'Files': lambda: load_files(self),
+                'Pages': lambda: load_pages(self),
             }
 
             for tab_name, loader_func in load_actions.items():
@@ -61,7 +57,7 @@ class CanvasLoader(BaseLoader):
                     self.docs.extend(loader_func())
 
         except Exception as error:
-            print("Something went wrong", error)
+            logging.error("Error loading Canvas materials", error)
         return self.docs
 
     def get_details(arg):

@@ -6,14 +6,14 @@ from typing import Dict, List
 
 from canvas_langchain.utils.common import format_data
 
-def load_assignments(data: Dict[str, any]) -> List[Document]:
+def load_assignments(loader) -> List[Document]:
     assignment_documents = []
     try:
-        assignments = data['course'].get_assignments()
+        assignments = loader.course.get_assignments()
         for doc in assignments:
-            if f"Assignment:{doc.id}" not in data['indexed_items']:
-                data['indexed_items'].add(f"Assignment:{doc.id}")
-                assignment_documents.extend(load_assignment(data, doc))
+            if f"Assignment:{doc.id}" not in loader.indexed_items:
+                loader.indexed_items.add(f"Assignment:{doc.id}")
+                assignment_documents.extend(load_assignment(loader, doc))
 
     except CanvasException as error:
         print("Error loading assignments", error)
@@ -21,13 +21,13 @@ def load_assignments(data: Dict[str, any]) -> List[Document]:
     return assignment_documents
 
 
-def load_assignment(data: Dict[str, any], assignment: PaginatedList) -> List[Document]:
+def load_assignment(loader, assignment: PaginatedList) -> List[Document]:
     assignment_description = ""
     embed_urls = []
     if assignment.description:
-        (assignment_description, embed_urls) = parse_html_for_text_and_urls(data["canvas"], 
-                                                                   data["course"],
-                                                                   assignment.description) 
+        (assignment_description, embed_urls) = parse_html_for_text_and_urls(loader.canvas, 
+                                                                            loader.course,
+                                                                            assignment.description) 
     # TODO: Shorten assignment content - Is "Assignment" needed before every tag?                                                                     assignment.description)
     assignment_content = (
         f"Assignment Name: {assignment.name}\n"

@@ -3,20 +3,20 @@ from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
 from canvas_langchain.utils.common import format_data
 
 from langchain.docstore.document import Document
-from typing import Dict, List
+from typing import List
 from urllib.parse import urljoin
 
-def load_pages(data: Dict[str, any]) -> List[Document]:
-    """Loads all pages in canvas course - Canvas metadata in data object"""
+def load_pages(loader) -> List[Document]:
+    """Loads all pages in canvas course"""
     page_documents = []
 
     try:
-        pages = data['course'].get_pages(published=True,
+        pages = loader.course.get_pages(published=True,
                                          include=['body'])
         for page in pages:
-            if f"Page:{page.page_id}" not in data["indexed_items"]:
-                data['indexed_items'].add(f"Page:{page.page_id}")
-                page_documents.extend(load_page(data, page))
+            if f"Page:{page.page_id}" not in loader.indexed_items:
+                loader.indexed_items.add(f"Page:{page.page_id}")
+                page_documents.extend(load_page(loader, page))
 
     except CanvasException as error:
         print("Canvas Exception when loading pages", error)
@@ -24,14 +24,14 @@ def load_pages(data: Dict[str, any]) -> List[Document]:
     return page_documents
 
 
-def load_page(data: Dict[str, any], page) -> List[Document]:
+def load_page(loader, page) -> List[Document]:
     """Loads and formats a single page and its embedded URL(s) content """
     page_docs = []
     if not page.locked_for_user and page.body:
-        (page_body, embed_urls) = parse_html_for_text_and_urls(canvas=data["canvas"],
-                                                               course=data["course"],
+        (page_body, embed_urls) = parse_html_for_text_and_urls(canvas=loader.canvas,
+                                                               course=loader.course,
                                                                html=page.body)
-        page_url = urljoin(data['course_api'], f'/pages/{page.url}')
+        page_url = urljoin(loader.course_api, f'/pages/{page.url}')
         metadata={"content": page_body,
                  "data": {"filename": page.title,
                             "source": page_url,

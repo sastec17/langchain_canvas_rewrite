@@ -4,13 +4,13 @@ from langchain.docstore.document import Document
 from typing import Dict, List
 from urllib.parse import urljoin
 
-def load_syllabus(data: Dict[str, any]) -> List[Document]:
-    if data['course'].syllabus_body: 
+def load_syllabus(loader) -> List[Document]:
+    if loader.course.syllabus_body: 
         try:
-            (syllabus_text, embed_urls) = parse_html_for_text_and_urls(canvas=data['canvas'],
-                                                                    course=data['course'],
-                                                                    html=data['course'].syllabus_body)
-            syllabus_url = urljoin(data['course_api'], '/assignments/syllabus')
+            (syllabus_text, embed_urls) = parse_html_for_text_and_urls(canvas=loader.canvas,
+                                                                    course=loader.course,
+                                                                    html=loader.course.syllabus_body)
+            syllabus_url = urljoin(loader.course_api, '/assignments/syllabus')
 
             metadata={"content": syllabus_text,
                       "data": {"filename": "Course Syllabus",

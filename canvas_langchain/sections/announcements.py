@@ -4,19 +4,19 @@ from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
 from canvas_langchain.utils.common import format_data
 
 from langchain.docstore.document import Document
-from typing import Dict, List
+from typing import List
 
-def load_announcements(data: Dict[str, any]) -> List[Document]:
+def load_announcements(loader) -> List[Document]:
     announcement_documents = embed_urls = []
     try:
-        announcements = data["canvas"].get_announcements(context_codes=[data["course"]],
+        announcements = loader.canvas.get_announcements(context_codes=[loader.course],
                                                          start_date="2016-01-01",
                                                          end_date=date.today().isoformat())
 
         for announcement in announcements:
-            (announcement_text, embed_urls) = parse_html_for_text_and_urls(data["canvas"],
-                                                                         data["course"],
-                                                                         announcement.message)
+            (announcement_text, embed_urls) = parse_html_for_text_and_urls(loader.canvas,
+                                                                           loader.course,
+                                                                           announcement.message)
             metadata={"content": announcement_text,
                       "data": {"filename": announcement.title,
                               "source": announcement.html_url,

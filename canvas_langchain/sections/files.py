@@ -9,16 +9,13 @@ from urllib.parse import urljoin
 # TODO: Set up mapping from allowed content types to functions?
 # TODO: Determine if templated function(s) suffice for loading documents
 
-def load_files(data: Dict[str, any]) -> List[Document]:
+def load_files(loader) -> List[Document]:
     """Loads and formats all files from Canvas course"""
     file_documents = []
     try:
-        files = data["course"].get_files()
+        files = loader.course.get_files()
 
     except CanvasException as error:
         print("Canvas Exception loading files", error)
     return file_documents
 
-def load_file(data: Dict[str: any], file) -> List[Document]:
-    
-    return
