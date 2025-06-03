@@ -1,4 +1,4 @@
-from canvas_langchain.base import BaseSectionLoader
+from canvas_langchain.base import BaseSectionLoader, BaseSectionLoaderVars
 
 from canvasapi.exceptions import CanvasException
 from canvas_langchain.utils.common import format_data
@@ -8,12 +8,11 @@ from typing import List
 from urllib.parse import urljoin
 
 class PageLoader(BaseSectionLoader):
-    def __init__(self, canvas, course, indexed_items, course_api):
-        super().__init__(canvas, course)
-        self.indexed_items = indexed_items
+    def __init__(self, BaseSectionVars: BaseSectionLoaderVars, course_api):
+        super().__init__(BaseSectionVars)
         self.course_api = course_api
 
-    def load_all(self) -> List[Document]:
+    def load_pages(self) -> List[Document]:
         page_documents = []
 
         try:
@@ -36,7 +35,7 @@ class PageLoader(BaseSectionLoader):
         if not page.locked_for_user and page.body:
             page_body, embed_urls = self.parse_html(html=page.body)
            
-            page_url = urljoin(self.course_api, f'/pages/{page.url}')
+            page_url = urljoin(self.course_api, f'pages/{page.url}')
             metadata={"content": page_body,
                     "data": {"filename": page.title,
                                 "source": page_url,

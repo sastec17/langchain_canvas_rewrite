@@ -6,9 +6,10 @@ from langchain.docstore.document import Document
 from LangChainKaltura import KalturaCaptionLoader
 from LangChainKaltura.MiVideoAPI import MiVideoAPI
 
-class MiVideoLoader(BaseSectionLoader):
+class MiVideoLoader():
     def __init__(self, canvas, course, indexed_items):
-        super().__init__(canvas, course)
+        self.canvas = canvas
+        self.course = course
         self.indexed_items = indexed_items
         self.caption_loader = None
         self.mivideo_api = MiVideoAPI(host=os.getenv('MIVIDEO_API_HOST'),
@@ -18,8 +19,6 @@ class MiVideoLoader(BaseSectionLoader):
 
     def load(self) -> List[Document]:
         """Load MiVideo media captions"""
-        print('LOADING INFO')
-
         mivideo_docuements = []
         try:
             if not self.caption_loader:

@@ -7,11 +7,6 @@ from typing import List
 from canvas_langchain.utils.common import format_data
 
 class AssignmentLoader(BaseSectionLoader):
-    def __init__(self, canvas, course, indexed_items):
-        super().__init__(canvas, course)
-        self.indexed_items = indexed_items
-
-
     def load(self) -> List[Document]:
         assignment_documents = []
         try:

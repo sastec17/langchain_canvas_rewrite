@@ -2,14 +2,16 @@ import logging
 from typing import List
 from canvasapi import Canvas
 from urllib.parse import urljoin
-
+from langchain.document_loaders.base import BaseLoader
 from langchain.docstore.document import Document
+
 from canvas_langchain.sections.announcements import AnnouncementLoader
 from canvas_langchain.sections.assignments import AssignmentLoader
-from langchain.document_loaders.base import BaseLoader
 from canvas_langchain.sections.files import FileLoader
+from canvas_langchain.sections.mivideo import MiVideoLoader
 from canvas_langchain.sections.pages import PageLoader
 from canvas_langchain.sections.syllabus import SyllabusLoader
+from canvas_langchain.base import BaseSectionLoaderVars
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -33,11 +35,19 @@ class CanvasLoader(BaseLoader):
         self.progress = []
 
         # content loaders
-        self.file_loader = FileLoader(self.canvas, self.course, self.indexed_items, self.course_api)
-        self.syllabus_loader = SyllabusLoader(self.canvas, self.course)
-        self.announcement_loader = AnnouncementLoader(self.canvas, self.course)
-        self.assignment_loader = AssignmentLoader(self.canvas, self.course, self.indexed_items)
-        self.page_loader = PageLoader(self.canvas, self.course, self.indexed_items, self.course_api)
+        self.mivideo_loader = MiVideoLoader(self.canvas, self.course, self.indexed_items)
+
+        self.baseSectionVars = BaseSectionLoaderVars(self.canvas, 
+                                                     self.course, 
+                                                     self.indexed_items, 
+                                                     self.mivideo_loader,
+                                                     logger)
+
+        self.file_loader = FileLoader(self.baseSectionVars, self.course_api, self.invalid_files)
+        self.syllabus_loader = SyllabusLoader(self.baseSectionVars)
+        self.announcement_loader = AnnouncementLoader(self.baseSectionVars)
+        self.assignment_loader = AssignmentLoader(self.baseSectionVars)
+        self.page_loader = PageLoader(self.baseSectionVars, self.course_api)
 
     def load(self) -> List[Document]:
         logger.info("Starting document loading process")
@@ -48,17 +58,18 @@ class CanvasLoader(BaseLoader):
             # get available course navigation tabs
             available_tabs = [tab.label for tab in self.course.get_tabs()]
 
-            # TODO: INVESTIGATE IF MATCH+CASE OR IF/ELIF IS BETTER HERE
-            load_actions = {
-                #'Announcements': lambda: self.announcement_loader.load(),
-                #'Assignments': lambda: self.assignment_loader.load(),
-                'Files': lambda: self.file_loader.load_files(),
-                #'Pages': lambda: self.page_loader.load_all(),
-            }
-            #self.announcement_loader.load()
-            for tab_name, loader_func in load_actions.items():
-                if tab_name in available_tabs:
-                    self.docs.extend(loader_func())
+            for tab_name in available_tabs:
+                match tab_name:
+                    # case 'Announcements':
+                    #     self.announcement_loader.load()
+                    # case 'Assignments':
+                    #     self.assignment_loader.load()
+                    case 'Media Gallery':
+                        self.mivideo_loader.load()
+                    # case 'Pages': 
+                    #     self.page_loader.load_pages()
+                    # case 'Files':
+                    #     self.file_loader.load_files()
 
         except Exception as error:
             logging.error("Error loading Canvas materials", error)

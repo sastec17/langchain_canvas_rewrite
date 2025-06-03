@@ -5,6 +5,7 @@ from PyPDF2 import errors
 from binascii import Error as binasciiError
 from typing import List
 from urllib.parse import urljoin
+from canvas_langchain.base import BaseSectionLoaderVars
 
 from canvas_langchain.base import BaseSectionLoader
 from canvasapi.exceptions import CanvasException, ResourceDoesNotExist
@@ -23,9 +24,9 @@ from langchain_community.document_loaders import (
 
 # TODO: Test .md, .excel, .docx file types
 class FileLoader(BaseSectionLoader):
-    def __init__(self, canvas, course, indexed_items, course_api):
-        super().__init__(canvas, course)
-        self.indexed_items = indexed_items
+    def __init__(self, BaseSectionVars: BaseSectionLoaderVars, course_api, invalid_files):
+        super().__init__(BaseSectionVars)
+        self.invalid_files = invalid_files
         self.course_api = course_api
         # TODO: REVISE THIS SYSTEM
         self.type_match = {
@@ -91,7 +92,7 @@ class FileLoader(BaseSectionLoader):
 
 
     def _load_html_file(self, file) -> List[Document]:
-        # NEEDS CANVAS AND 
+        """Loads and formats html file data"""
         file_contents = file.get_contents(binary=False)
         file_text, embed_urls = self.parse_html(html=file_contents)
         metadata={"content":file_text,

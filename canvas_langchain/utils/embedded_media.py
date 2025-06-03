@@ -1,3 +1,4 @@
+"""Utility functions to extract text and embedded URLs from HTML content in Canvas"""
 import os
 from bs4 import BeautifulSoup
 from urllib.parse import parse_qs, urlparse
@@ -28,7 +29,7 @@ def parse_html_for_text_and_urls(canvas, course, html):
 
 def _get_embed_url_via_uuid(canvas, course, url: str):
     """Extracts embed url from Canvas iframe URL via UUID"""    
-    # Extract UUID (unique identifier)
+    # Extract UUID (unique identifier) - tagged with 'resource_link_lookup_uuid'
     uuid = parse_qs(urlparse(url).query).get('resource_link_lookup_uuid',[None]).pop()
     url = None
     # Get embed URL via UUID
