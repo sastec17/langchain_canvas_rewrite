@@ -47,10 +47,7 @@ class FileLoader(BaseSectionLoader):
             files = self.course.get_files()
             for file in files:
                 try: 
-                    if f"File:{file.id}" not in self.indexed_items:
-                        self.indexed_items.add(f"File:{file.id}")
-                        file_documents.extend(self.load_file(file))
-                
+                    file_documents.extend(self.load_file(file))
                 # exception occurs when file is in a hidden module
                 except ResourceDoesNotExist:
                     self.logger.info(f"File {file.filename} does not exist")
@@ -64,23 +61,23 @@ class FileLoader(BaseSectionLoader):
 
     def load_file(self, file) -> List[Document]:
         """Loads given file based on extension"""
-        file_documents = []
-        try:
-            content_type = getattr(file, "content-type")
+        if f"File:{file.id}" not in self.indexed_items:
+            self.indexed_items.add(f"File:{file.id}")
+            try:
+                content_type = getattr(file, "content-type")
 
-            if content_type in ["text/plain", "text/rtf"]:
-                file_documents.extend(self._load_rtf_or_text_file(file))
-            elif content_type == "text/html":
-                file_documents.extend(self._load_html_file(file))
-            elif content_type == "application/pdf":
-                file_documents.extend(self._load_pdf_file(file))
-            elif content_type in self.type_match:
-                file_documents.extend(self._load_file_general(file, 
-                                                              self.type_match[content_type]))
+                if content_type in ["text/plain", "text/rtf"]:
+                    return self._load_rtf_or_text_file(file)
+                elif content_type == "text/html":
+                    return self._load_html_file(file)
+                elif content_type == "application/pdf":
+                    return self._load_pdf_file(file)
+                elif content_type in self.type_match:
+                    return self._load_file_general(file, self.type_match[content_type])
 
-        except ResourceDoesNotExist as err:
-            self.logger.info('RESOURCE DOES NOT EXIST - SEE ABOVE', err)
-        return file_documents
+            except ResourceDoesNotExist as err:
+                self.logger.info('RESOURCE DOES NOT EXIST - SEE ABOVE', err)
+        return []
 
 
     def _load_rtf_or_text_file(self, file) -> List[Document]:

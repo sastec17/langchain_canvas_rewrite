@@ -19,10 +19,7 @@ class PageLoader(BaseSectionLoader):
         try:
             pages = self.course.get_pages(published=True,
                                             include=['body'])
-            for page in pages:
-                if f"Page:{page.page_id}" not in self.indexed_items:
-                    self.indexed_items.add(f"Page:{page.page_id}")
-                    page_documents.extend(self.load_page(page))
+            page_documents.extend(self.load_page(page) for page in pages)
 
         except CanvasException as error:
             self.logger.error("Canvas error loading pages", error)
@@ -33,7 +30,9 @@ class PageLoader(BaseSectionLoader):
     def load_page(self, page) -> List[Document]:
         """Loads and formats a single page and its embedded URL(s) content """
         page_docs = []
-        if not page.locked_for_user and page.body:
+        if not page.locked_for_user and page.body and f"Page:{page.page_id}" not in self.indexed_items:
+            self.indexed_items.add(f"Page:{page.page_id}")                      
+
             page_body, embed_urls = self.parse_html(html=page.body)
            
             page_url = urljoin(self.course_api, f'pages/{page.url}')
@@ -43,5 +42,5 @@ class PageLoader(BaseSectionLoader):
                                 "kind": "page",
                                 "id": page.page_id}
                     }
-            page_docs = format_data(metadata=metadata, embed_urls=embed_urls)                                                      
+            page_docs = format_data(metadata=metadata, embed_urls=embed_urls)
         return page_docs

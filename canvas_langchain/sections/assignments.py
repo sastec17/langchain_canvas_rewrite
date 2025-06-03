@@ -16,7 +16,7 @@ class AssignmentLoader(BaseSectionLoader):
             for doc in assignments:
                 if f"Assignment:{doc.id}" not in self.indexed_items:
                     self.indexed_items.add(f"Assignment:{doc.id}")
-                    assignment_documents.extend(self.load_assignment(doc))
+                    assignment_documents.extend(self.load_assignment(doc, None))
 
         except CanvasException as error:
             self.logger.error("Canvas exception loading assignmnets", error)
@@ -24,12 +24,17 @@ class AssignmentLoader(BaseSectionLoader):
         return assignment_documents
 
 
-    def load_assignment(self, assignment: PaginatedList) -> List[Document]:
+    def load_assignment(self, assignment: PaginatedList, description: str | None) -> List[Document]:
         """Load and format given assignment"""
         assignment_description = ""
         embed_urls = []
-        if assignment.description:
-            (assignment_description, embed_urls) = self.parse_html(assignment.description)
+        
+        # Custom description from locked module
+        if description is not None:
+            assignment_description = description
+
+        elif assignment.description:
+            assignment_description, embed_urls = self.parse_html(assignment.description)
                                                                              
         # TODO: Shorten assignment content - Is "Assignment" needed before every tag?                                                                     assignment.description)
         assignment_content = (
@@ -45,4 +50,5 @@ class AssignmentLoader(BaseSectionLoader):
                            "kind": "assignment",
                            "id": assignment.id}
                     }
+
         return format_data(metadata=metadata, embed_urls=embed_urls)

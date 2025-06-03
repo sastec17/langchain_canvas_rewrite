@@ -4,6 +4,7 @@ from canvasapi import Canvas
 from urllib.parse import urljoin
 from langchain.document_loaders.base import BaseLoader
 from langchain.docstore.document import Document
+from canvasapi.exceptions import CanvasException
 
 from canvas_langchain.sections.announcements import AnnouncementLoader
 from canvas_langchain.sections.assignments import AssignmentLoader
@@ -54,6 +55,7 @@ class CanvasLoader(BaseLoader):
         self.page_loader = PageLoader(self.baseSectionVars, self.course_api)
 
     def load(self) -> List[Document]:
+        """Loads all available content from Canvas course"""
         logger.info("Starting document loading process. \n")
         try:
             # load syllabus
@@ -70,15 +72,64 @@ class CanvasLoader(BaseLoader):
                         self.docs.extend(self.assignment_loader.load())
                     case 'Media Gallery':
                         self.docs.extend(self.mivideo_loader.load(mivideo_id=None))
+                    case 'Modules':
+                        self.docs.extend(self.load_modules())
                     case 'Pages': 
                         self.docs.extend(self.page_loader.load_pages())
                     case 'Files':
                         self.docs.extend(self.file_loader.load_files())
 
         except Exception as error:
-            logging.error("Error loading Canvas materials", error)
+            logging.error("Error loading Canvas materials %s", error)
         logger.info("Canvas course processing finished.")
         return self.docs
+    
+
+    def load_modules(self) -> List[Document]:
+        """Loads content from all unlocked modules in course"""
+        logger.info('Loading modules...\n')
+        module_documents = []
+        try:
+            modules = self.course.get_modules()
+            module_documents.extend(self.load_module(module) for module in modules)
+
+        except CanvasException as ex:
+            logger.error("Canvas exception loading modules %s", ex)
+
+        return module_documents
+
+    def load_module(self, module) -> List[Document]:
+        locked = False  # TODO - helper function to check if module is unlocked
+        unlock_at_datetime = False
+        module_items = module.get_module_items(include=["content_details"])
+        module_docs = []
+        #TODO: consider try/ except within for loop, outside of conditionals and extra logging
+        for item in module_items:
+            try:
+                # page
+                if item.type == "Page" and not locked:
+                    page = self.course.get_page(item.page_url)
+                    self.page_loader.load_page(page)
+
+                # assignment metadata can be gathered, even if module is locked
+                elif item.type == "Assignment":
+                    assignment = self.course.get_assignment(item.content_id)
+                    description=None
+                    if locked and unlock_at_datetime:
+                        description=f"Assignment is part of module {module.name}, which is locked until {unlock_at_datetime}"
+                    module_docs.extend(self.assignment_loader.load_assignment(assignment, description))
+
+                # file - Need Reource DNE exception here?
+                elif item.type=="File":
+                    # move indexed items check to get_file
+                    file = self.course.get_file(item.content_id)
+                    module_docs.extend(self.file_loader.load_file(file))
+
+                # TODO: Logic for external url :) 
+            except CanvasException:
+                logger.error("Unable to load %s item in module %s", item, module.name)
+
+        return module_docs
 
     def get_details(arg):
         return "No details here"
