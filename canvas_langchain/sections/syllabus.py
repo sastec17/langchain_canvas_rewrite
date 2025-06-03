@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 class SyllabusLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
+        self.logger.info("Loading syllabus...\n")
         if self.course.syllabus_body:
             try:
                 syllabus_text, embed_urls = self.parse_html(self.course.syllabus_body)
@@ -17,7 +18,7 @@ class SyllabusLoader(BaseSectionLoader):
                                 "source": syllabus_url,
                                 "kind": "syllabus"}
                             }
-                return format_data(metadata=metadata, embed_urls=embed_urls)
+                return self.format_data(metadata=metadata, embed_urls=embed_urls)
 
             except AttributeError as err:
                 self.logger.error("Attribute error loading syllabus", err)

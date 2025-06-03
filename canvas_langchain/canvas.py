@@ -15,6 +15,10 @@ from canvas_langchain.base import BaseSectionLoaderVars
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+# Quiet noisy libraries
+logging.getLogger("canvasapi").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("LangChainKaltura").setLevel(logging.WARNING)
 
 class CanvasLoader(BaseLoader):
     def __init__(self,
@@ -35,7 +39,7 @@ class CanvasLoader(BaseLoader):
         self.progress = []
 
         # content loaders
-        self.mivideo_loader = MiVideoLoader(self.canvas, self.course, self.indexed_items)
+        self.mivideo_loader = MiVideoLoader(self.canvas, self.course, self.indexed_items, logger)
 
         self.baseSectionVars = BaseSectionLoaderVars(self.canvas, 
                                                      self.course, 
@@ -50,7 +54,7 @@ class CanvasLoader(BaseLoader):
         self.page_loader = PageLoader(self.baseSectionVars, self.course_api)
 
     def load(self) -> List[Document]:
-        logger.info("Starting document loading process")
+        logger.info("Starting document loading process. \n")
         try:
             # load syllabus
             self.docs.extend(self.syllabus_loader.load())
@@ -60,19 +64,20 @@ class CanvasLoader(BaseLoader):
 
             for tab_name in available_tabs:
                 match tab_name:
-                    # case 'Announcements':
-                    #     self.docs.extend(self.announcement_loader.load())
-                    # case 'Assignments':
-                    #     self.docs.extend(self.assignment_loader.load())
+                    case 'Announcements':
+                        self.docs.extend(self.announcement_loader.load())
+                    case 'Assignments':
+                        self.docs.extend(self.assignment_loader.load())
                     case 'Media Gallery':
-                        self.docs.extend(self.mivideo_loader.load())
-                    # case 'Pages': 
-                    #     self.docs.extend(self.page_loader.load_pages())
-                    # case 'Files':
-                    #     self.docs.extend(self.file_loader.load_files())
+                        self.docs.extend(self.mivideo_loader.load(mivideo_id=None))
+                    case 'Pages': 
+                        self.docs.extend(self.page_loader.load_pages())
+                    case 'Files':
+                        self.docs.extend(self.file_loader.load_files())
 
         except Exception as error:
             logging.error("Error loading Canvas materials", error)
+        logger.info("Canvas course processing finished.")
         return self.docs
 
     def get_details(arg):

@@ -32,6 +32,6 @@ class AnnouncementLoader(BaseSectionLoader):
                 announcement_documents.extend(formatted_data)
 
         except CanvasException as error:
-            self.logger.error("Canvas exception loading announcements", error)
+            self.logger.error("Canvas exception loading announcements %s", error)
 
         return announcement_documents

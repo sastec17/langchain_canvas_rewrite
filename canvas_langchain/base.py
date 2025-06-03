@@ -44,7 +44,7 @@ class BaseSectionLoader:
                 metadata=metadata['data']
             ))
         # Load content from embed urls
-        document_arr.append(self._load_embed_urls(metadata=metadata, embed_urls=embed_urls))
+        document_arr.extend(self._load_embed_urls(metadata=metadata, embed_urls=embed_urls))
         return document_arr
 
 
@@ -52,12 +52,14 @@ class BaseSectionLoader:
         """Load MiVideo content from embed urls"""
         docs = []
         for url in embed_urls:
+            self.logger.debug("Loading embed url %s", url)
             # extract media_id from each url + load captions
             if (mivideo_media_id := self._get_media_id(url)):
-                docs.append(self.load_mivideo(media_id = mivideo_media_id))
+                docs.extend(self.mivideo_loader.load(mivideo_id=mivideo_media_id))
             
         for doc in docs:
-            doc.metadata.update({'filename': metadata['name'], 'course_context': metadata['source']})
+            doc.metadata.update({'filename': str(metadata['data']['filename']), 
+                                 'course_context': str(metadata['data']['source'])})
         return docs
 
 

@@ -9,7 +9,7 @@ from canvas_langchain.utils.common import format_data
 class AssignmentLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
         """Load all assignments for a Canvas course"""
-        self.logger.info("Loading assignments...")
+        self.logger.info("Loading assignments...\n")
         assignment_documents = []
         try:
             assignments = self.course.get_assignments()

@@ -124,7 +124,7 @@ class FileLoader(BaseSectionLoader):
                 docs.append(pdf_page)
 
         except Exception as err:
-            self.logger.error(f"Error loading pdf {file.filename}", err)
+            self.logger.error("Error loading pdf %s. Error: %s", file.filename, err)
         return docs
 
 
