@@ -13,6 +13,7 @@ class PageLoader(BaseSectionLoader):
         self.course_api = course_api
 
     def load_pages(self) -> List[Document]:
+        self.logger.info("Loading pages...")
         page_documents = []
 
         try:
@@ -24,7 +25,7 @@ class PageLoader(BaseSectionLoader):
                     page_documents.extend(self.load_page(page))
 
         except CanvasException as error:
-            print("Canvas Exception when loading pages", error)
+            self.logger.error("Canvas error loading pages", error)
         
         return page_documents
 

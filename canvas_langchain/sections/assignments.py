@@ -8,6 +8,8 @@ from canvas_langchain.utils.common import format_data
 
 class AssignmentLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
+        """Load all assignments for a Canvas course"""
+        self.logger.info("Loading assignments...")
         assignment_documents = []
         try:
             assignments = self.course.get_assignments()
@@ -17,12 +19,13 @@ class AssignmentLoader(BaseSectionLoader):
                     assignment_documents.extend(self.load_assignment(doc))
 
         except CanvasException as error:
-            print("Error loading assignments", error)
+            self.logger.error("Canvas exception loading assignmnets", error)
 
         return assignment_documents
 
 
     def load_assignment(self, assignment: PaginatedList) -> List[Document]:
+        """Load and format given assignment"""
         assignment_description = ""
         embed_urls = []
         if assignment.description:

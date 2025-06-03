@@ -20,5 +20,5 @@ class SyllabusLoader(BaseSectionLoader):
                 return format_data(metadata=metadata, embed_urls=embed_urls)
 
             except AttributeError as err:
-                print("ERROR WITH LOADING SYLLABUS", err)
+                self.logger.error("Attribute error loading syllabus", err)
         return []

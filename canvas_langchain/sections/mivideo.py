@@ -1,6 +1,5 @@
 import os
 from typing import List
-from canvas_langchain.base import BaseSectionLoader
 
 from langchain.docstore.document import Document
 from LangChainKaltura import KalturaCaptionLoader

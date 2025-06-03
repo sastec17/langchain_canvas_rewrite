@@ -9,6 +9,8 @@ from langchain.docstore.document import Document
 
 class AnnouncementLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
+        """Load all announcements for a Canvas course"""
+        self.logger.info("Loading announcements...")
         announcement_documents = embed_urls = []
         try:
             announcements = self.canvas.get_announcements(context_codes=[self.course],
@@ -29,7 +31,7 @@ class AnnouncementLoader(BaseSectionLoader):
                                                                                                                     
                 announcement_documents.extend(formatted_data)
 
-        except CanvasException as error: 
-            print('ERROR LOADING ANNOUNCEMENTS', error)
+        except CanvasException as error:
+            self.logger.error("Canvas exception loading announcements", error)
 
         return announcement_documents

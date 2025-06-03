@@ -61,15 +61,15 @@ class CanvasLoader(BaseLoader):
             for tab_name in available_tabs:
                 match tab_name:
                     # case 'Announcements':
-                    #     self.announcement_loader.load()
+                    #     self.docs.extend(self.announcement_loader.load())
                     # case 'Assignments':
-                    #     self.assignment_loader.load()
+                    #     self.docs.extend(self.assignment_loader.load())
                     case 'Media Gallery':
-                        self.mivideo_loader.load()
+                        self.docs.extend(self.mivideo_loader.load())
                     # case 'Pages': 
-                    #     self.page_loader.load_pages()
+                    #     self.docs.extend(self.page_loader.load_pages())
                     # case 'Files':
-                    #     self.file_loader.load_files()
+                    #     self.docs.extend(self.file_loader.load_files())
 
         except Exception as error:
             logging.error("Error loading Canvas materials", error)

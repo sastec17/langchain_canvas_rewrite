@@ -40,6 +40,7 @@ class FileLoader(BaseSectionLoader):
 
     def load_files(self) -> List[Document]:
         """Loads and formats all files from Canvas course"""
+        self.logger.info("Loading files...")
         file_documents = []
         try:
             # TODO: LOOK INTO NESTED TRY EXCEPTS
@@ -50,12 +51,14 @@ class FileLoader(BaseSectionLoader):
                         self.indexed_items.add(f"File:{file.id}")
                         file_documents.extend(self.load_file(file))
                 
-                # file is in hidden module
+                # exception occurs when file is in a hidden module
                 except ResourceDoesNotExist:
-                    print("File resourceDNE")
+                    self.logger.info(f"File {file.filename} does not exist")
+                    file_content_type = getattr(file, "content-type")
+                    self.invalid_files.append(f"{file.filename} ({file_content_type})")
 
         except CanvasException as error:
-            print("Canvas Exception loading files", error)
+            self.logger.error("Canvas Exception loading files", error)
         return file_documents
     
 
@@ -76,7 +79,7 @@ class FileLoader(BaseSectionLoader):
                                                               self.type_match[content_type]))
 
         except ResourceDoesNotExist as err:
-            print('Test this was hit first', err)
+            self.logger.info('RESOURCE DOES NOT EXIST - SEE ABOVE', err)
         return file_documents
 
 
@@ -121,7 +124,7 @@ class FileLoader(BaseSectionLoader):
                 docs.append(pdf_page)
 
         except Exception as err:
-            print("PDF EXCEPTION ERROR", err)
+            self.logger.error(f"Error loading pdf {file.filename}", err)
         return docs
 
 

@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 import logging
 from langchain.docstore.document import Document
@@ -33,17 +34,6 @@ class BaseSectionLoader:
                                             self.course, 
                                             html)
     
-    def load_mivideo(self):
-        """Load MiVideo media captions"""
-        mivideo_documents = []
-        try:
-            caption_loader = []
-
-            # extract media documents
-        except Exception as ex:
-            print("ERROR LOADING MIVIDEO", ex)
-        return mivideo_documents
-    
     def format_data(self, metadata, embed_urls) -> List[Document]:
         """Process metadata and embed_urls on a single 'page'"""
         document_arr = []    
@@ -72,14 +62,15 @@ class BaseSectionLoader:
 
 
     # TODO: COULD PUT INTO HELPER FILE IF NEEDED - GENERAL GETTER
-    def _get_media_id(url: str) -> str | None:
+    def _get_media_id(self, url: str) -> str | None:
         """Extracts unique media id from each URL to load mivideo"""
         parsed=urlparse(url)
         # TODO: AVOID HARDCODING THIS - How best to load this? 
-        if parsed.netloc == 'aakaf.mivideo.it.umich.edu':
+        if parsed.netloc == os.getenv('MIVIDEO_KAF_HOSTNAME',
+                                              'aakaf.mivideo.it.umich.edu'):
             path_parts = parsed.path.split('/')
             try:
                 return path_parts[path_parts.index('entryid')+1]
             except ValueError:
-                print('EMBED URL NOT FOR MIVIDEO')
+                self.logger.info(f"Embed URL for {url} is not MiVideo")
         return None
