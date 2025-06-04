@@ -7,6 +7,7 @@ from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
 from urllib.parse import urlparse
 from canvasapi import Canvas
 from canvasapi.course import Course
+import settings
 
 @dataclass
 class BaseSectionLoaderVars:
@@ -68,8 +69,7 @@ class BaseSectionLoader:
         """Extracts unique media id from each URL to load mivideo"""
         parsed=urlparse(url)
         # TODO: AVOID HARDCODING THIS - How best to load this? 
-        if parsed.netloc == os.getenv('MIVIDEO_KAF_HOSTNAME',
-                                              'aakaf.mivideo.it.umich.edu'):
+        if parsed.netloc == settings.MIVIDEO_KAF_HOSTNAME: # 'aakaf.mivideo.it.umich.edu':
             path_parts = parsed.path.split('/')
             try:
                 return path_parts[path_parts.index('entryid')+1]

@@ -1,9 +1,8 @@
 """Utility functions to extract text and embedded URLs from HTML content in Canvas"""
-import os
 from bs4 import BeautifulSoup
 from urllib.parse import parse_qs, urlparse
 from canvasapi.exceptions import CanvasException
-
+import settings
 
 def parse_html_for_text_and_urls(canvas, course, html):
     """Extracts text and a list of embedded URLs from HTML content"""
@@ -50,7 +49,7 @@ def _get_embed_url_direct(url: str):
 
     # Verify url matches Canvas LTI 1.1 format:
     # `https://<canvas_ui_hostname>/courses/<course_id>/external_tools/retrieve?url=<embed_url>`
-    canvas_ui_hostname = os.getenv('CANVAS_UI_HOSTNAME', 'umich.instructure.com')
+    canvas_ui_hostname = settings.CANVAS_UI_HOSTNAME or 'umich.instructure.com'
 
     netloc_matches = parsed_url.netloc.lower() == canvas_ui_hostname
     path_starts_correctly = parsed_url.path.lower().startswith('/courses/')

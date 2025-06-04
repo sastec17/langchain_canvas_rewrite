@@ -1,6 +1,6 @@
 import os
 from typing import List
-
+import settings
 from langchain.docstore.document import Document
 from LangChainKaltura import KalturaCaptionLoader
 from LangChainKaltura.MiVideoAPI import MiVideoAPI
@@ -12,9 +12,9 @@ class MiVideoLoader():
         self.indexed_items = indexed_items
         self.logger = logger
         self.caption_loader = None
-        self.mivideo_api = MiVideoAPI(host=os.getenv('MIVIDEO_API_HOST'),
-                                      authId=os.getenv('MIVIDEO_API_AUTH_ID'),
-                                      authSecret=os.getenv('MIVIDEO_API_AUTH_SECRET'))
+        self.mivideo_api = MiVideoAPI(host=settings.MIVIDEO_API_HOST,
+                                      authId=settings.MIVIDEO_API_AUTH_ID,
+                                      authSecret=settings.MIVIDEO_API_AUTH_SECRET)
 
 
     def load(self, mivideo_id: str | None) -> List[Document]:
@@ -36,7 +36,7 @@ class MiVideoLoader():
                     'name': 'unidentified embedded media'
                 })
 
-            course_url_template = os.getenv('CANVAS_COURSE_URL_TEMPLATE')
+            course_url_template = settings.CANVAS_COURSE_URL_TEMPLATE
             for doc in mivideo_docuements:
                 # add formatted course source url for this video
                 if course_url_template:
@@ -56,10 +56,9 @@ class MiVideoLoader():
             caption_loader = KalturaCaptionLoader(
                 apiClient=self.mivideo_api,
                 courseId=str(int(self.course.id)),
-                userId=os.getenv('CANVAS_USER_ID_OVERRIDE_DEV_ONLY',
-                                 self.canvas.get_current_user().id),
+                userId=settings.CANVAS_USER_ID_OVERRIDE_DEV_ONLY or self.canvas.get_current_user().id,
                 languages=languages,
-                urlTemplate=os.getenv('MIVIDEO_SOURCE_URL_TEMPLATE'),
+                urlTemplate=settings.MIVIDEO_SOURCE_URL_TEMPLATE,
                 chunkSeconds=int(KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT)
             )
         except Exception as ex:
