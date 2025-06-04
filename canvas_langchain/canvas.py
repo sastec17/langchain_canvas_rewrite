@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 from langchain.document_loaders.base import BaseLoader
 from langchain.docstore.document import Document
 from canvasapi.exceptions import CanvasException
+from langchain_community.document_loaders import UnstructuredURLLoader
+
 
 from canvas_langchain.sections.announcements import AnnouncementLoader
 from canvas_langchain.sections.assignments import AssignmentLoader
@@ -66,18 +68,18 @@ class CanvasLoader(BaseLoader):
 
             for tab_name in available_tabs:
                 match tab_name:
-                    case 'Announcements':
-                        self.docs.extend(self.announcement_loader.load())
-                    case 'Assignments':
-                        self.docs.extend(self.assignment_loader.load())
-                    case 'Media Gallery':
-                        self.docs.extend(self.mivideo_loader.load(mivideo_id=None))
+                    # case 'Announcements':
+                    #     self.docs.extend(self.announcement_loader.load())
+                    # case 'Assignments':
+                    #     self.docs.extend(self.assignment_loader.load())
+                    # case 'Media Gallery':
+                    #     self.docs.extend(self.mivideo_loader.load(mivideo_id=None))
                     case 'Modules':
                         self.docs.extend(self.load_modules())
-                    case 'Pages': 
-                        self.docs.extend(self.page_loader.load_pages())
-                    case 'Files':
-                        self.docs.extend(self.file_loader.load_files())
+                    # case 'Pages': 
+                    #     self.docs.extend(self.page_loader.load_pages())
+                    # case 'Files':
+                    #     self.docs.extend(self.file_loader.load_files())
 
         except Exception as error:
             logging.error("Error loading Canvas materials %s", error)
@@ -98,7 +100,9 @@ class CanvasLoader(BaseLoader):
 
         return module_documents
 
+
     def load_module(self, module) -> List[Document]:
+        """Loads all content in module by type"""
         locked = False  # TODO - helper function to check if module is unlocked
         unlock_at_datetime = False
         module_items = module.get_module_items(include=["content_details"])
@@ -108,29 +112,42 @@ class CanvasLoader(BaseLoader):
             try:
                 # page
                 if item.type == "Page" and not locked:
+                    logger.debug("Loading pages %s from module", item.page_url)
                     page = self.course.get_page(item.page_url)
                     self.page_loader.load_page(page)
 
                 # assignment metadata can be gathered, even if module is locked
                 elif item.type == "Assignment":
+                    logger.debug("Loading assignments %s from module", item.content_id)
                     assignment = self.course.get_assignment(item.content_id)
                     description=None
                     if locked and unlock_at_datetime:
                         description=f"Assignment is part of module {module.name}, which is locked until {unlock_at_datetime}"
                     module_docs.extend(self.assignment_loader.load_assignment(assignment, description))
 
+                #TODO
                 # file - Need Reource DNE exception here?
                 elif item.type=="File":
+                    logger.debug("Loading file %s from module", item.content_id)
                     # move indexed items check to get_file
                     file = self.course.get_file(item.content_id)
                     module_docs.extend(self.file_loader.load_file(file))
 
-                # TODO: Logic for external url :) 
+                # TODO: TEST THIS - case where externalUrls wouldn't be true? 
+                # Clean up conditional - Feels a smidge unreadable
+                elif item.type=="ExternalUrl" and self.index_external_urls and \
+                    not locked and f"ExtUrl:{item.external_url}" not in self.indexed_items:
+                    logger.debug("Loading external URL %s from module", item.external_url)
+                    # load URL
+                    url_loader = UnstructuredURLLoader(urls = [item.external_url])
+                    module_docs.extend(url_loader.load())
+                    self.indexed_items.append(f"ExtUrl:{item.external_url}")
+
             except CanvasException:
                 logger.error("Unable to load %s item in module %s", item, module.name)
 
         return module_docs
 
+
     def get_details(arg):
         return "No details here"
-    
