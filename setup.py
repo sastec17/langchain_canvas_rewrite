@@ -18,7 +18,7 @@ setup(
         "langchain",
         "langchain-community",
         "unstructured[docx,pptx]",
-        "canvasapi=3.3.0",
+        "canvasapi==3.3.0",
         "beautifulsoup4",
         "lxml",
         "PyPDF2[crypto]",
@@ -30,6 +30,8 @@ setup(
         "xlrd",
         "markdown",
         "pytz",
+        'LangChainKaltura @ file:///Users/sastec/Downloads/umichgpt/LangChainKaltura'
+        "python-dotenv==1.1.0",
     ],
     python_requires=">=3.8.1",
 )
