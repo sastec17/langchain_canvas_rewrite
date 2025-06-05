@@ -1,6 +1,5 @@
-import datetime
+from datetime import datetime, timezone
 import logging
-import pytz
 import settings
 from typing import List, Tuple, Dict
 from urllib.parse import urlparse
@@ -54,29 +53,17 @@ def _get_media_id(url: str, logger: logging) -> str | None:
     return None
 
 
-# TODO: Cleanup
+# TODO: determine if returned time should be formatted differently?
 def get_module_metadata(unlock_time: str) -> Tuple[bool, str]:
     """Returns whether module is locked AND when it's going to be unlocked"""
     locked=False
     formatted_datetime=""
-    # Takes in module.unlock_at
-    # Returns if locked and the formatted module unlock time
     if unlock_time:
-        unlock_at_datetime = datetime.striptime(unlock_time, '%Y-%m-%dT%H:%M:%SZ')
-        unlock_at_datetime = unlock_at_datetime.replace(tzinfo=pytz.UTC)
-        epoch_time = int(unlock_at_datetime.timestamp())
-        current_epoch_time = int(datetime.now().timestamp())
-        # Get current time 
-        # Figure out timezone we are currently in - Ensure datetime passed in is in same timezone
-
-        # Why are we hardcoding the timezone??? - Find a way to extract timezone 
-
-        # Use to specify when the timezone will end
-        if current_epoch_time < epoch_time:
-            locked = True
-            # NEED FORMATTED DATETIME FOR LOAD_ASSIGNMENT - format here
-            ny_timezone = pytz.timezone('America/New_York')
-            ny_datetime = unlock_at_datetime.astimezone(ny_timezone)
-            formatted_datetime = ny_datetime.strftime("%b %d, %Y at %I%p %Z").replace("PM", "pm").replace("AM", 'am')
+        # Convert to a timezone-aware datetime object
+        formatted_datetime = datetime.strptime(unlock_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        # Get the current time in UTC
+        current_time = datetime.now(timezone.utc)
+        # Determine if locked
+        locked = current_time < formatted_datetime
 
     return locked, formatted_datetime

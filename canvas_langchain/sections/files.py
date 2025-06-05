@@ -96,7 +96,7 @@ class FileLoader(BaseSectionLoader):
                         "kind":"file",
                         "id": file.id}
                     }
-        return self.format_data(metadata=metadata, embed_urls=embed_urls)
+        return self.process_data(metadata=metadata, embed_urls=embed_urls)
 
 
     def _load_pdf_file(self, file):
