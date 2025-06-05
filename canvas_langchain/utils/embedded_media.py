@@ -42,11 +42,9 @@ def _get_embed_url_via_uuid(canvas, course, url: str):
     return url
 
 
-def _get_embed_url_direct(url: str):
+def _get_embed_url_direct(url: str) -> str | None:
     """Extracts embedded resource URL from Canvas (LTI 1.1 styling)"""
     parsed_url = urlparse(url)
-    # TODO: CHECK BEST PRACTICE TO DETERMINE IF THIS SHOULD BE HERE OR IN INIT
-
     # Verify url matches Canvas LTI 1.1 format:
     # `https://<canvas_ui_hostname>/courses/<course_id>/external_tools/retrieve?url=<embed_url>`
     canvas_ui_hostname = settings.CANVAS_UI_HOSTNAME or 'umich.instructure.com'

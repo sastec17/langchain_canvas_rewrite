@@ -1,11 +1,14 @@
-from langchain.docstore.document import Document
-from typing import List, Tuple
-from urllib.parse import urlparse
 import datetime
+import logging
 import pytz
-# from canvas_langchain.sections.mivideo import load_mivideo
+import settings
+from typing import List, Tuple, Dict
+from urllib.parse import urlparse
 
-def format_data(metadata, embed_urls) -> List[Document]:
+from langchain.docstore.document import Document
+from canvas_langchain.sections.mivideo import MiVideoLoader
+
+def process_data(metadata: Dict, embed_urls: List, mivideo_loader: MiVideoLoader) -> List[Document]:
     """Process metadata and embed_urls on a single 'page'"""
     document_arr = []    
     # Format metadata
@@ -14,38 +17,42 @@ def format_data(metadata, embed_urls) -> List[Document]:
             page_content=metadata['content'],
             metadata=metadata['data']
         ))
-
     # Load content from embed urls
-    # TODO: uncomment this 
-    #document_arr.append(load_embed_urls(metadata=metadata, embed_urls=embed_urls))
+    document_arr.extend(_load_embed_urls(metadata=metadata, embed_urls=embed_urls, mivideo_loader=mivideo_loader))
     return document_arr
 
 
-def load_embed_urls(metadata, embed_urls):
+def _load_embed_urls(metadata: Dict, 
+                     embed_urls: List, 
+                     mivideo_loader: MiVideoLoader) -> List[Document]:
     """Load MiVideo content from embed urls"""
+    # needs metadata, urls, mivideoloader
     docs = []
     for url in embed_urls:
+        mivideo_loader.logger.debug("Loading embed url %s", url)
         # extract media_id from each url + load captions
         if (mivideo_media_id := _get_media_id(url)):
-            print('sup')
-            #docs.append(load_mivideo(media_id = mivideo_media_id))
+            docs.extend(mivideo_loader.load(mivideo_id=mivideo_media_id,
+                                            logger=mivideo_loader.logger))
         
     for doc in docs:
-        doc.metadata.update({'filename': metadata['name'], 'course_context': metadata['source']})
+        doc.metadata.update({'filename': str(metadata['data']['filename']), 
+                                'course_context': str(metadata['data']['source'])})
     return docs
 
 
-def _get_media_id(url: str) -> str | None:
+def _get_media_id(url: str, logger: logging) -> str | None:
     """Extracts unique media id from each URL to load mivideo"""
     parsed=urlparse(url)
     # TODO: AVOID HARDCODING THIS - How best to load this? 
-    if parsed.netloc == 'aakaf.mivideo.it.umich.edu':
+    if parsed.netloc == (settings.MIVIDEO_KAF_HOSTNAME or 'aakaf.mivideo.it.umich.edu'): 
         path_parts = parsed.path.split('/')
         try:
             return path_parts[path_parts.index('entryid')+1]
         except ValueError:
-            print('EMBED URL NOT FOR MIVIDEO')
+            logger.info(f"Embed URL for {url} is not MiVideo")
     return None
+
 
 # TODO: Cleanup
 def get_module_metadata(unlock_time: str) -> Tuple[bool, str]:
