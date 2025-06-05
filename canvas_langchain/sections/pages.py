@@ -40,5 +40,5 @@ class PageLoader(BaseSectionLoader):
                                 "kind": "page",
                                 "id": page.page_id}
                     }
-            page_docs = self.format_data(metadata=metadata, embed_urls=embed_urls)
+            page_docs = self.process_data(metadata=metadata, embed_urls=embed_urls)
         return page_docs

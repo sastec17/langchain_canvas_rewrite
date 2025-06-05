@@ -1,11 +1,12 @@
 import logging
-from typing import List
+from typing import Any, List, Literal
 from canvasapi import Canvas
 from urllib.parse import urljoin
 from langchain.document_loaders.base import BaseLoader
 from langchain.docstore.document import Document
 from canvasapi.exceptions import CanvasException
 from langchain_community.document_loaders import UnstructuredURLLoader
+from pydantic import BaseModel
 
 from canvas_langchain.utils.common import get_module_metadata
 from canvas_langchain.sections.announcements import AnnouncementLoader
@@ -22,6 +23,20 @@ logger = logging.getLogger(__name__)
 logging.getLogger("canvasapi").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("LangChainKaltura").setLevel(logging.WARNING)
+
+#NOTE: This is here to prevent conflicts with other classes in UMGPT
+class LogStatement(BaseModel):
+    """
+    INFO can be user-facing statements, non-technical and perhaps very high-level
+    """
+    message: Any
+    level: Literal['INFO', 'DEBUG', 'WARNING']
+
+    def __json__(self):
+        return {
+            'message': self.message,
+            'level': self.level,
+        }
 
 class CanvasLoader(BaseLoader):
     def __init__(self,
@@ -68,19 +83,18 @@ class CanvasLoader(BaseLoader):
 
             for tab_name in available_tabs:
                 match tab_name:
-                    # case 'Announcements':
-                    #     self.docs.extend(self.announcement_loader.load())
-                    # case 'Assignments':
-                    #     self.docs.extend(self.assignment_loader.load())
+                    case 'Announcements':
+                        self.docs.extend(self.announcement_loader.load())
+                    case 'Assignments':
+                        self.docs.extend(self.assignment_loader.load())
                     case 'Media Gallery':
                         self.docs.extend(self.mivideo_loader.load(mivideo_id=None))
-                    # case 'Modules':
-                    #     self.docs.extend(self.load_modules())
-                    # case 'Pages': 
-                    #     self.docs.extend(self.page_loader.load_pages())
-                    # case 'Files':
-                    #     self.docs.extend(self.file_loader.load_files())
-
+                    case 'Modules':
+                        self.docs.extend(self.load_modules())
+                    case 'Pages': 
+                        self.docs.extend(self.page_loader.load_pages())
+                    case 'Files':
+                        self.docs.extend(self.file_loader.load_files())
         except Exception as error:
             logging.error("Error loading Canvas materials %s", error)
         logger.info("Canvas course processing finished.")
@@ -148,5 +162,5 @@ class CanvasLoader(BaseLoader):
         return module_docs
 
 
-    def get_details(arg):
-        return "No details here"
+    def get_details(self, arg):
+        return [], []
