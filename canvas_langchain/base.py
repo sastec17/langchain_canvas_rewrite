@@ -1,13 +1,14 @@
-import os
-from dataclasses import dataclass
 import logging
-from langchain.docstore.document import Document
-from typing import List
-from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
+from typing import List, Dict
 from urllib.parse import urlparse
+import settings
+
 from canvasapi import Canvas
 from canvasapi.course import Course
-import settings
+from dataclasses import dataclass
+from langchain.docstore.document import Document
+from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
+
 
 @dataclass
 class BaseSectionLoaderVars:
@@ -27,15 +28,14 @@ class BaseSectionLoader:
         self.mivideo_loader = baseSectionVars.mivideo_loader
         self.logger = baseSectionVars.logger
 
-        return
-    
+
     def parse_html(self, html):
         """Extracts text and a list of embedded urls from HTML content"""
         return parse_html_for_text_and_urls(self.canvas, 
                                             self.course, 
                                             html)
     
-    def format_data(self, metadata, embed_urls) -> List[Document]:
+    def process_data(self, metadata: Dict, embed_urls: List) -> List[Document]:
         """Process metadata and embed_urls on a single 'page'"""
         document_arr = []    
         # Format metadata
@@ -49,7 +49,7 @@ class BaseSectionLoader:
         return document_arr
 
 
-    def _load_embed_urls(self, metadata, embed_urls):
+    def _load_embed_urls(self, metadata: Dict, embed_urls: List) -> List[Document]:
         """Load MiVideo content from embed urls"""
         docs = []
         for url in embed_urls:
@@ -69,7 +69,7 @@ class BaseSectionLoader:
         """Extracts unique media id from each URL to load mivideo"""
         parsed=urlparse(url)
         # TODO: AVOID HARDCODING THIS - How best to load this? 
-        if parsed.netloc == settings.MIVIDEO_KAF_HOSTNAME: # 'aakaf.mivideo.it.umich.edu':
+        if parsed.netloc == (settings.MIVIDEO_KAF_HOSTNAME or 'aakaf.mivideo.it.umich.edu'): 
             path_parts = parsed.path.split('/')
             try:
                 return path_parts[path_parts.index('entryid')+1]

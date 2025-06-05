@@ -1,10 +1,8 @@
+from typing import List
+from canvasapi.paginated_list import PaginatedList
 from canvasapi.exceptions import CanvasException
 from canvas_langchain.base import BaseSectionLoader
 from langchain.docstore.document import Document
-from canvasapi.paginated_list import PaginatedList
-from typing import List
-
-from canvas_langchain.utils.common import format_data
 
 class AssignmentLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
@@ -51,4 +49,4 @@ class AssignmentLoader(BaseSectionLoader):
                            "id": assignment.id}
                     }
 
-        return format_data(metadata=metadata, embed_urls=embed_urls)
+        return self.process_data(metadata=metadata, embed_urls=embed_urls)

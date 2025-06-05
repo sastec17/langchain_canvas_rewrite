@@ -1,4 +1,3 @@
-import os
 from typing import List
 import settings
 from langchain.docstore.document import Document
@@ -29,7 +28,7 @@ class MiVideoLoader():
             if mivideo_id is None:
                 mivideo_docuements = self.caption_loader.load()
 
-            # Load single media post - likely embedded
+            # Load single media post embedded in another Canvas section
             elif f"MiVideo:{mivideo_id}" not in self.indexed_items:
                 mivideo_docuements = self.caption_loader.fetchMediaCaption({
                     'id': mivideo_id,
@@ -41,6 +40,7 @@ class MiVideoLoader():
                 # add formatted course source url for this video
                 if course_url_template:
                     doc.metadata['course_context'] = course_url_template.format(courseId=self.course.id)
+
                 self.indexed_items.add("MiVideo:"+doc.metadata['media_id'])
 
         except Exception as ex:

@@ -1,11 +1,8 @@
 from datetime import date
 from typing import List
-
-from canvas_langchain.base import BaseSectionLoader
 from canvasapi.exceptions import CanvasException
-from canvas_langchain.utils.common import format_data
 from langchain.docstore.document import Document
-
+from canvas_langchain.base import BaseSectionLoader
 
 class AnnouncementLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
@@ -27,7 +24,7 @@ class AnnouncementLoader(BaseSectionLoader):
                                 "id": announcement.id}
                         }
                 
-                formatted_data = format_data(metadata=metadata, embed_urls=embed_urls)
+                formatted_data = self.process_data(metadata=metadata, embed_urls=embed_urls)
                                                                                                                     
                 announcement_documents.extend(formatted_data)
 

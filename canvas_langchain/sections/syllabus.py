@@ -1,9 +1,8 @@
 from typing import List
+from urllib.parse import urljoin
 
 from canvas_langchain.base import BaseSectionLoader
-from canvas_langchain.utils.common import format_data
 from langchain.docstore.document import Document
-from urllib.parse import urljoin
 
 class SyllabusLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
@@ -18,7 +17,7 @@ class SyllabusLoader(BaseSectionLoader):
                                 "source": syllabus_url,
                                 "kind": "syllabus"}
                             }
-                return self.format_data(metadata=metadata, embed_urls=embed_urls)
+                return self.process_data(metadata=metadata, embed_urls=embed_urls)
 
             except AttributeError as err:
                 self.logger.error("Attribute error loading syllabus", err)

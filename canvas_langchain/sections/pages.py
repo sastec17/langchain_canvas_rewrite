@@ -1,11 +1,9 @@
-from canvas_langchain.base import BaseSectionLoader, BaseSectionLoaderVars
-
-from canvasapi.exceptions import CanvasException
-from canvas_langchain.utils.common import format_data
-
-from langchain.docstore.document import Document
 from typing import List
 from urllib.parse import urljoin
+from canvasapi.exceptions import CanvasException
+from langchain.docstore.document import Document
+
+from canvas_langchain.base import BaseSectionLoader, BaseSectionLoaderVars
 
 class PageLoader(BaseSectionLoader):
     def __init__(self, BaseSectionVars: BaseSectionLoaderVars, course_api):
@@ -42,5 +40,5 @@ class PageLoader(BaseSectionLoader):
                                 "kind": "page",
                                 "id": page.page_id}
                     }
-            page_docs = format_data(metadata=metadata, embed_urls=embed_urls)
+            page_docs = self.format_data(metadata=metadata, embed_urls=embed_urls)
         return page_docs
