@@ -8,7 +8,7 @@ try:
 except ImportError as err:
     import settings
 
-def parse_html_for_text_and_urls(canvas, course, html):
+def parse_html_for_text_and_urls(canvas, course, html, logger):
     """Extracts text and a list of embedded URLs from HTML content"""
     bs = BeautifulSoup(html, 'lxml')
     doc_text = bs.text.strip()
@@ -30,7 +30,7 @@ def parse_html_for_text_and_urls(canvas, course, html):
     return doc_text, embed_urls
 
 
-def _get_embed_url_via_uuid(canvas, course, url: str):
+def _get_embed_url_via_uuid(canvas, course, url: str, logger):
     """Extracts embed url from Canvas iframe URL via UUID"""    
     # Extract UUID (unique identifier) - tagged with 'resource_link_lookup_uuid'
     uuid = parse_qs(urlparse(url).query).get('resource_link_lookup_uuid',[None]).pop()
@@ -41,8 +41,9 @@ def _get_embed_url_via_uuid(canvas, course, url: str):
         try: 
             response = canvas._Canvas__requester.request('GET', endpoint)
             url = response.json().get('url')
-        except CanvasException as error:
-            print("ERROR WITH UUID", error)
+        except CanvasException:
+            logger.logStatement(message=f"Canvas exception loading UUID for {url}", level="WARNING")
+
     return url
 
 

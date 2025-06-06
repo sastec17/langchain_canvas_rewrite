@@ -7,7 +7,8 @@ from canvas_langchain.base import BaseSectionLoader
 class AnnouncementLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
         """Load all announcements for a Canvas course"""
-        self.logger.info("Loading announcements...")
+        self.logger.logStatement(message='Loading announcements...\n', level="INFO")
+
         announcement_documents = embed_urls = []
         try:
             announcements = self.canvas.get_announcements(context_codes=[self.course],
@@ -29,6 +30,7 @@ class AnnouncementLoader(BaseSectionLoader):
                 announcement_documents.extend(formatted_data)
 
         except CanvasException as error:
-            self.logger.error("Canvas exception loading announcements %s", error)
+            self.logger.logStatement(message=f"Canvas exception loading announcements {error}",
+                                     level="WARNING")
 
         return announcement_documents

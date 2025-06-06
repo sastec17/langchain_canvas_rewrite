@@ -8,7 +8,8 @@ from canvasapi.exceptions import CanvasException
 from langchain_community.document_loaders import UnstructuredURLLoader
 from pydantic import BaseModel
 
-from canvas_langchain.utils.common import get_module_metadata
+from canvas_langchain.utils.logging import Logger
+from canvas_langchain.utils.process_data import get_module_metadata
 from canvas_langchain.sections.announcements import AnnouncementLoader
 from canvas_langchain.sections.assignments import AssignmentLoader
 from canvas_langchain.sections.files import FileLoader
@@ -17,14 +18,7 @@ from canvas_langchain.sections.pages import PageLoader
 from canvas_langchain.sections.syllabus import SyllabusLoader
 from canvas_langchain.base import BaseSectionLoaderVars
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-# Quiet noisy libraries
-logging.getLogger("canvasapi").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("LangChainKaltura").setLevel(logging.WARNING)
-
-#NOTE: This is here to prevent conflicts with other classes in UMGPT
+#TODO: This is here to prevent conflicts with other classes in UMGPT
 class LogStatement(BaseModel):
     """
     INFO can be user-facing statements, non-technical and perhaps very high-level
@@ -53,17 +47,18 @@ class CanvasLoader(BaseLoader):
 
         self.docs = []
         self.indexed_items = set()
-        self.invalid_files = []
-        self.progress = []
+        self.invalid_files = [] 
+
+        self.logger = Logger()
 
         # content loaders
-        self.mivideo_loader = MiVideoLoader(self.canvas, self.course, self.indexed_items, logger)
+        self.mivideo_loader = MiVideoLoader(self.canvas, self.course, self.indexed_items, self.logger)
 
         self.baseSectionVars = BaseSectionLoaderVars(self.canvas, 
                                                      self.course, 
                                                      self.indexed_items, 
                                                      self.mivideo_loader,
-                                                     logger)
+                                                     self.logger)
 
         self.file_loader = FileLoader(self.baseSectionVars, self.course_api, self.invalid_files)
         self.syllabus_loader = SyllabusLoader(self.baseSectionVars)
@@ -73,7 +68,7 @@ class CanvasLoader(BaseLoader):
 
     def load(self) -> List[Document]:
         """Loads all available content from Canvas course"""
-        logger.info("Starting document loading process. \n")
+        self.logger.logStatement(message="Starting document loading process. \n", level="INFO")
         try:
             # load syllabus
             self.docs.extend(self.syllabus_loader.load())
@@ -95,22 +90,23 @@ class CanvasLoader(BaseLoader):
                         self.docs.extend(self.page_loader.load_pages())
                     case 'Files':
                         self.docs.extend(self.file_loader.load_files())
-        except Exception as error:
-            logging.error("Error loading Canvas materials %s", error)
-        logger.info("Canvas course processing finished.")
+        except Exception as err:
+                self.logger.logStatement(message=f"Error loading Canvas materials {err}", level="WARNING")
+        
+        self.logger.logStatement(message="Canvas course processing finished.", level="INFO")
         return self.docs
     
 
     def load_modules(self) -> List[Document]:
         """Loads content from all unlocked modules in course"""
-        logger.info('Loading modules...\n')
+        self.logger.logStatement(message='Loading modules...\n', level="INFO")
         module_documents = []
         try:
             modules = self.course.get_modules()
             module_documents.extend(self.load_module(module) for module in modules)
 
         except CanvasException as ex:
-            logger.error("Canvas exception loading modules %s", ex)
+            self.logger.logStatement(message=f"Canvas exception loading modules. Error: {ex}", level="WARNING")
 
         return module_documents
 
@@ -120,47 +116,49 @@ class CanvasLoader(BaseLoader):
         locked, formatted_datetime = get_module_metadata(module.unlock_at)
         module_items = module.get_module_items(include=["content_details"])
         module_docs = []
-        #TODO: consider try/ except within for loop, outside of conditionals and extra logging
         for item in module_items:
             try:
                 # page
                 if item.type == "Page" and not locked:
-                    logger.debug("Loading pages %s from module", item.page_url)
+                    self.logger.logStatement(message=f"Loading page {item.page_url} from module.", 
+                                             level="DEBUG")
                     page = self.course.get_page(item.page_url)
                     module_docs.extend(self.page_loader.load_page(page))
 
                 # assignment metadata can be gathered, even if module is locked
                 elif item.type == "Assignment":
-                    logger.debug("Loading assignments %s from module", item.content_id)
+                    self.logger.logStatement(message=f"Loading assignment {item.content_id} from module.", 
+                                             level="DEBUG")
                     assignment = self.course.get_assignment(item.content_id)
                     description=None
                     if locked and formatted_datetime:
                         description=f"Assignment is part of module {module.name}, which is locked until {formatted_datetime}"
-                    #self.assignment_loader.load_assignment(assignment, description)
                     module_docs.extend(self.assignment_loader.load_assignment(assignment, description))
 
-                #TODO
-                # file - Need Reource DNE exception here?
                 elif item.type=="File":
-                    logger.debug("Loading file %s from module", item.content_id)
+                    self.logger.logStatement(message=f"Loading file {item.content_id} from module.", 
+                                             level="DEBUG")
                     file = self.course.get_file(item.content_id)
                     module_docs.extend(self.file_loader.load_file(file))
 
-                # TODO: TEST THIS - case where externalUrls wouldn't be true? 
-                # Clean up conditional - Feels a smidge unreadable
                 elif item.type=="ExternalUrl" and self.index_external_urls and \
                     not locked and f"ExtUrl:{item.external_url}" not in self.indexed_items:
-                    logger.debug("Loading external URL %s from module", item.external_url)
+
+                    self.logger.logStatement(message=f"Loading external url {item.external_url} from module.", 
+                                             level="DEBUG")
                     # load URL
                     url_loader = UnstructuredURLLoader(urls = [item.external_url])
                     module_docs.extend(url_loader.load())
-                    self.indexed_items.append(f"ExtUrl:{item.external_url}")
+                    self.indexed_items.add(f"ExtUrl:{item.external_url}")
 
             except CanvasException as ex:
-                logger.error("Unable to load %s item in module %s. Error: %s", item, module.name, ex)
+                self.logger.logStatement(message=f"Unable to load {item} in module {module.name}. Error: {ex}",
+                                         level="WARNING")
 
         return module_docs
 
 
-    def get_details(self, arg):
-        return [], []
+    def get_details(self, level='INFO') -> List:
+        if level == 'INFO':
+            return self.logger._filtered_statements_by_level(level=level)
+        return self.logger.progress, self.logger.errors

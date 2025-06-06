@@ -36,7 +36,8 @@ class FileLoader(BaseSectionLoader):
 
     def load_files(self) -> List[Document]:
         """Loads and formats all files from Canvas course"""
-        self.logger.info("Loading files...")
+        self.logger.logStatement(message='Loading files...\n', level="INFO")
+
         file_documents = []
         try:
             files = self.course.get_files()
@@ -44,8 +45,8 @@ class FileLoader(BaseSectionLoader):
                 file_documents.extend(self.load_file(file))
 
         except CanvasException as error:
-            self.logger.error("Canvas Exception loading files", error)
-        exit()
+            self.logger.logStatement(message=f"Canvas exception loading files {error}",
+                                     level="WARNING")
         return file_documents
     
 
@@ -53,6 +54,7 @@ class FileLoader(BaseSectionLoader):
         """Loads given file based on extension"""
         if f"File:{file.id}" not in self.indexed_items:
             self.indexed_items.add(f"File:{file.id}")
+            self.logger.logStatement(message=f"Loading {content_type} file: {file.filename}", level="DEBUG")
             try:
                 content_type = getattr(file, "content-type")
 
@@ -67,7 +69,8 @@ class FileLoader(BaseSectionLoader):
             
             # exception occurs when file is in a hidden module
             except ResourceDoesNotExist as err:
-                self.logger.error("File %s does not exist - likely in hidden module %s", file.filename, err)
+                self.logger.logStatement(message=f"File {file.filename} does not exist - likely in hidden module {err}",
+                                        level="DEBUG")
                 file_content_type = getattr(file, "content-type")
                 self.invalid_files.append(f"{file.filename} ({file_content_type})")
         return []
@@ -75,7 +78,6 @@ class FileLoader(BaseSectionLoader):
 
     def _load_rtf_or_text_file(self, file) -> List[Document]:
         """Loads and formats text and rtf file data"""
-        self.logger.debug("Loading rtf or txt file: %s", file.filename)
         file_contents = file.get_contents(binary=False)
         text_document = Document(page_content=file_contents,
                                 metadata={"filename": file.filename, 
@@ -87,7 +89,6 @@ class FileLoader(BaseSectionLoader):
 
     def _load_html_file(self, file) -> List[Document]:
         """Loads and formats html file data"""
-        self.logger.debug("Loading html file: %s", file.filename)
         file_contents = file.get_contents(binary=False)
         file_text, embed_urls = self.parse_html(html=file_contents)
         metadata={"content":file_text,
@@ -101,7 +102,6 @@ class FileLoader(BaseSectionLoader):
 
     def _load_pdf_file(self, file):
         """Loads given pdf file by page"""
-        self.logger.debug("Loading pdf file: %s", file.filename)
         file_contents = file.get_contents(binary=True)
         docs = []
         try:
@@ -115,42 +115,45 @@ class FileLoader(BaseSectionLoader):
                                               "page": i+1}
                                     )
                 docs.append(pdf_page)
-        #TODO: binascii error handling needed? 
-        except errors.FileNotDecryptedError as err:
-            self.logger.error("Error: pdf %s is encrypted. Error: %s", file.filename, err)
+
+        except errors.FileNotDecryptedError:
+            self.logger.logStatement(message=f"Error: pdf {file.filename} is encrypted.",
+                                     level="WARNING")
         except Exception as err:
-            self.logger.error("Error loading pdf %s. Error: %s", file.filename, err)
+            self.logger.logStatement(message=f"Error loading pdf {file.filename}. Err: {err}",
+                                     level="WARNING")
         return docs
 
 
     def _load_file_general(self, file, file_type):
         """Loads docx, excel, pptx, and md files"""
-        self.logger.debug("Loading %s file: %s", file_type, file.filename)
         file_contents = file.get_contents(binary=True)
         docs=[]
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_path = f"{temp_dir}/{file.filename}"
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                file_path = f"{temp_dir}/{file.filename}"
 
-            with open(file_path, "wb") as binary_file:
-                # Write bytes to file
-                binary_file.write(file_contents)
+                with open(file_path, "wb") as binary_file:
+                    # Write bytes to file
+                    binary_file.write(file_contents)
 
-            match file_type:
-                case 'csv':
-                    loader = CSVLoader(file_path)
-                case 'excel':
-                    loader = UnstructuredExcelLoader(file_path)         
-                case 'docx':
-                    loader=Docx2txtLoader(file_path)
-                case 'md':
-                    loader = UnstructuredMarkdownLoader(file_path)
-                case 'pptx':
-                    loader=UnstructuredPowerPointLoader(file_path)
+                match file_type:
+                    case 'csv':
+                        loader = CSVLoader(file_path)
+                    case 'excel':
+                        loader = UnstructuredExcelLoader(file_path)         
+                    case 'docx':
+                        loader=Docx2txtLoader(file_path)
+                    case 'md':
+                        loader = UnstructuredMarkdownLoader(file_path)
+                    case 'pptx':
+                        loader=UnstructuredPowerPointLoader(file_path)
 
-            docs = loader.load()
+                docs = loader.load()
 
-            for i, _ in enumerate(docs):
-                docs[i].metadata["filename"] = file.filename
-                docs[i].metadata["source"] = urljoin(self.course_api, f"files/{file.id}")
-
+                for i, _ in enumerate(docs):
+                    docs[i].metadata["filename"] = file.filename
+                    docs[i].metadata["source"] = urljoin(self.course_api, f"files/{file.id}")
+        except Exception:
+            self.logger.logStatement(message=f"Error loading {file.filename}", level="WARNING")
         return docs

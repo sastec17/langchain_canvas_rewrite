@@ -1,4 +1,3 @@
-import logging
 from typing import List, Dict
 from dataclasses import dataclass
 
@@ -7,6 +6,7 @@ from canvasapi.course import Course
 from langchain.docstore.document import Document
 from canvas_langchain.utils.embedded_media import parse_html_for_text_and_urls
 from canvas_langchain.utils.process_data import process_data
+from canvas_langchain.utils.logging import Logger
 
 @dataclass
 class BaseSectionLoaderVars:
@@ -14,7 +14,7 @@ class BaseSectionLoaderVars:
     course: Course
     indexed_items: set
     mivideo_loader: int
-    logger: logging
+    logger: Logger
 
 
 class BaseSectionLoader:
@@ -31,7 +31,8 @@ class BaseSectionLoader:
         """Extracts text and a list of embedded urls from HTML content"""
         return parse_html_for_text_and_urls(canvas=self.canvas, 
                                             course=self.course, 
-                                            html=html)
+                                            html=html,
+                                            logger=self.logger)
     
     def process_data(self, metadata: Dict, embed_urls: List) -> List[Document]:
         """Process metadata and embed_urls on a single 'page'"""

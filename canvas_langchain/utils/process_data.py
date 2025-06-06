@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
-import logging
 from typing import List, Tuple, Dict
 from urllib.parse import urlparse
 from langchain.docstore.document import Document
 from canvas_langchain.sections.mivideo import MiVideoLoader
+from canvas_langchain.utils.logging import Logger
 # compatible with isolated and integrated testing
 try:
     from django.conf import settings
@@ -31,7 +31,7 @@ def _load_embed_urls(metadata: Dict,
     # needs metadata, urls, mivideoloader
     docs = []
     for url in embed_urls:
-        mivideo_loader.logger.debug("Loading embed url %s", url)
+        mivideo_loader.logger.logStatement(message=f"Loading embed url {url}", level="DEBUG")
         # extract media_id from each url + load captions
         if (mivideo_media_id := _get_media_id(url, logger=mivideo_loader.logger)):
             docs.extend(mivideo_loader.load(mivideo_id=mivideo_media_id))
@@ -42,7 +42,7 @@ def _load_embed_urls(metadata: Dict,
     return docs
 
 
-def _get_media_id(url: str, logger: logging) -> str | None:
+def _get_media_id(url: str, logger: Logger) -> str | None:
     """Extracts unique media id from each URL to load mivideo"""
     parsed=urlparse(url)
     if parsed.netloc == getattr(settings, 'MIVIDEO_KAF_HOSTNAME', 'aakaf.mivideo.it.umich.edu'):
@@ -50,11 +50,10 @@ def _get_media_id(url: str, logger: logging) -> str | None:
         try:
             return path_parts[path_parts.index('entryid')+1]
         except ValueError:
-            logger.info(f"Embed URL for {url} is not MiVideo")
+            logger.logStatement(message =f"Embed URL for {url} is not MiVideo", level="WARNING")
     return None
 
 
-# TODO: determine if returned time should be formatted differently?
 def get_module_metadata(unlock_time: str) -> Tuple[bool, str]:
     """Returns whether module is locked AND when it's going to be unlocked"""
     locked=False

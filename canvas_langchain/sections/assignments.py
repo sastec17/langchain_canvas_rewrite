@@ -7,7 +7,8 @@ from langchain.docstore.document import Document
 class AssignmentLoader(BaseSectionLoader):
     def load(self) -> List[Document]:
         """Load all assignments for a Canvas course"""
-        self.logger.info("Loading assignments...\n")
+        self.logger.logStatement(message='Loading assignments...\n', level="INFO")
+
         assignment_documents = []
         try:
             assignments = self.course.get_assignments()
@@ -17,7 +18,8 @@ class AssignmentLoader(BaseSectionLoader):
                     assignment_documents.extend(self.load_assignment(doc, None))
 
         except CanvasException as error:
-            self.logger.error("Canvas exception loading assignmnets", error)
+            self.logger.logStatement(message=f"Canvas exception loading assignments {error}",
+                                    level="WARNING")
 
         return assignment_documents
 

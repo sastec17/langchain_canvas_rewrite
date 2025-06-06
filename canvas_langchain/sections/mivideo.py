@@ -23,7 +23,7 @@ class MiVideoLoader():
     def load(self, mivideo_id: str | None) -> List[Document]:
         """Load MiVideo media captions"""
         mivideo_docuements = []
-        self.logger.debug("Loading MiVideo captions for %s", mivideo_id)
+        self.logger.logStatement(message='Loading MiVideo...\n', level="INFO")
         try:
             if not self.caption_loader:
                 self.caption_loader = self._get_caption_loader()
@@ -47,8 +47,8 @@ class MiVideoLoader():
 
                 self.indexed_items.add("MiVideo:"+doc.metadata['media_id'])
 
-        except Exception as ex:
-            self.logger.error("Error loading MiVideo content %s", ex)
+        except Exception:
+            self.logger.logStatement(message=f"Error loading MiVideo content", level="WARNING")
 
         return mivideo_docuements
     
@@ -59,11 +59,12 @@ class MiVideoLoader():
             caption_loader = KalturaCaptionLoader(
                 apiClient=self.mivideo_api,
                 courseId=str(int(self.course.id)),
-                userId=getattr(settings, 'CANVAS_USER_ID_OVERRIDE_DEV_ONLY', self.canvas.get_current_user().id),
+                userId=str(int(getattr(settings, 'CANVAS_USER_ID_OVERRIDE_DEV_ONLY', self.canvas.get_current_user().id))),
                 languages=languages,
                 urlTemplate=settings.MIVIDEO_SOURCE_URL_TEMPLATE,
-                chunkSeconds=getattr(settings, 'MIVIDEO_CHUNK_SECONDS', KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT),
+                chunkSeconds=int(getattr(settings, 'MIVIDEO_CHUNK_SECONDS', KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT)),
             )
-        except Exception as ex:
-            self.logger.error("Error loading Kaltura Caption loader %s", ex)
+        except Exception:
+            self.logger.logStatement(message=f"Error loading Kaltura Caption Loader", level="WARNING")
+
         return caption_loader

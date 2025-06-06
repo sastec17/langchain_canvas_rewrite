@@ -11,7 +11,7 @@ class PageLoader(BaseSectionLoader):
         self.course_api = course_api
 
     def load_pages(self) -> List[Document]:
-        self.logger.info("Loading pages...")
+        self.logger.logStatement(message='Loading pages...\n', level="INFO")
         page_documents = []
 
         try:
@@ -19,8 +19,8 @@ class PageLoader(BaseSectionLoader):
                                             include=['body'])
             page_documents.extend(self.load_page(page) for page in pages)
 
-        except CanvasException as error:
-            self.logger.error("Canvas error loading pages", error)
+        except CanvasException:
+            self.logger.logStatement(message=f"Canvas exception loading pages", level="WARNING")
         
         return page_documents
 
