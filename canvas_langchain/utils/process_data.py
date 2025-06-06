@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
 import logging
-import settings
 from typing import List, Tuple, Dict
 from urllib.parse import urlparse
-
 from langchain.docstore.document import Document
 from canvas_langchain.sections.mivideo import MiVideoLoader
+# compatible with isolated and integrated testing
+try:
+    from django.conf import settings
+except ImportError as err:
+    import settings
 
 def process_data(metadata: Dict, embed_urls: List, mivideo_loader: MiVideoLoader) -> List[Document]:
     """Process metadata and embed_urls on a single 'page'"""
@@ -30,9 +33,8 @@ def _load_embed_urls(metadata: Dict,
     for url in embed_urls:
         mivideo_loader.logger.debug("Loading embed url %s", url)
         # extract media_id from each url + load captions
-        if (mivideo_media_id := _get_media_id(url)):
-            docs.extend(mivideo_loader.load(mivideo_id=mivideo_media_id,
-                                            logger=mivideo_loader.logger))
+        if (mivideo_media_id := _get_media_id(url, logger=mivideo_loader.logger)):
+            docs.extend(mivideo_loader.load(mivideo_id=mivideo_media_id))
         
     for doc in docs:
         doc.metadata.update({'filename': str(metadata['data']['filename']), 
@@ -43,8 +45,7 @@ def _load_embed_urls(metadata: Dict,
 def _get_media_id(url: str, logger: logging) -> str | None:
     """Extracts unique media id from each URL to load mivideo"""
     parsed=urlparse(url)
-    # TODO: AVOID HARDCODING THIS - How best to load this? 
-    if parsed.netloc == (settings.MIVIDEO_KAF_HOSTNAME or 'aakaf.mivideo.it.umich.edu'): 
+    if parsed.netloc == getattr(settings, 'MIVIDEO_KAF_HOSTNAME', 'aakaf.mivideo.it.umich.edu'):
         path_parts = parsed.path.split('/')
         try:
             return path_parts[path_parts.index('entryid')+1]
@@ -61,7 +62,6 @@ def get_module_metadata(unlock_time: str) -> Tuple[bool, str]:
     if unlock_time:
         # Convert to a timezone-aware datetime object
         formatted_datetime = datetime.strptime(unlock_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-        # Get the current time in UTC
         current_time = datetime.now(timezone.utc)
         # Determine if locked
         locked = current_time < formatted_datetime

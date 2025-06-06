@@ -2,7 +2,11 @@
 from bs4 import BeautifulSoup
 from urllib.parse import parse_qs, urlparse
 from canvasapi.exceptions import CanvasException
-import settings
+# compatible with isolated and integrated testing
+try:
+    from django.conf import settings
+except ImportError as err:
+    import settings
 
 def parse_html_for_text_and_urls(canvas, course, html):
     """Extracts text and a list of embedded URLs from HTML content"""

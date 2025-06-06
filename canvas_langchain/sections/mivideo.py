@@ -1,8 +1,12 @@
 from typing import List
-import settings
 from langchain.docstore.document import Document
-from LangChainKaltura import KalturaCaptionLoader
+from LangChainKaltura.KalturaCaptionLoader import KalturaCaptionLoader
 from LangChainKaltura.MiVideoAPI import MiVideoAPI
+# compatible with isolated and integrated testing
+try:
+    from django.conf import settings
+except ImportError as err:
+        import settings
 
 class MiVideoLoader():
     def __init__(self, canvas, course, indexed_items, logger):
@@ -48,18 +52,17 @@ class MiVideoLoader():
 
         return mivideo_docuements
     
+
     def _get_caption_loader(self) -> KalturaCaptionLoader:
-        # TODO: determine if custom languages needed
         try: 
             languages = KalturaCaptionLoader.LANGUAGES_DEFAULT
-            # TODO: REVISE SOME OF THESE VALUES
             caption_loader = KalturaCaptionLoader(
                 apiClient=self.mivideo_api,
                 courseId=str(int(self.course.id)),
-                userId=settings.CANVAS_USER_ID_OVERRIDE_DEV_ONLY or self.canvas.get_current_user().id,
+                userId=getattr(settings, 'CANVAS_USER_ID_OVERRIDE_DEV_ONLY', self.canvas.get_current_user().id),
                 languages=languages,
                 urlTemplate=settings.MIVIDEO_SOURCE_URL_TEMPLATE,
-                chunkSeconds=int(KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT)
+                chunkSeconds=getattr(settings, 'MIVIDEO_CHUNK_SECONDS', KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT),
             )
         except Exception as ex:
             self.logger.error("Error loading Kaltura Caption loader %s", ex)

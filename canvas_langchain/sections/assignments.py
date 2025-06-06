@@ -34,12 +34,11 @@ class AssignmentLoader(BaseSectionLoader):
         elif assignment.description:
             assignment_description, embed_urls = self.parse_html(assignment.description)
                                                                              
-        # TODO: Shorten assignment content - Is "Assignment" needed before every tag?                                                                     assignment.description)
         assignment_content = (
             f"Assignment Name: {assignment.name}\n"
-            f"Assignment Due Date: {assignment.due_at}\n"
-            f"Assignment Points Possible: {assignment.points_possible}\n"
-            f"Assignment Description: {assignment_description}\n"
+            f"Due Date: {assignment.due_at}\n"
+            f"Points Possible: {assignment.points_possible}\n"
+            f"Description: {assignment_description}\n"
         )
 
         metadata={"content":assignment_content,
