@@ -71,8 +71,12 @@ class FileLoader(BaseSectionLoader):
             except ResourceDoesNotExist as err:
                 self.logger.logStatement(message=f"File {file.filename} does not exist - likely in hidden module {err}",
                                         level="DEBUG")
-                file_content_type = getattr(file, "content-type")
-                self.invalid_files.append(f"{file.filename} ({file_content_type})")
+                self.invalid_files.append(f"{file.filename} ({content_type})")
+
+            except Exception as ex:
+                self.logger.logStatement(message=f"Exception while loading file {file.filename}: {ex}",
+                        level="DEBUG")
+
         return []
 
 
