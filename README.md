@@ -46,6 +46,13 @@ poetry lock
 docker-compose up --build --force-recreate
 ```
 
+Note - `poetry lock` may require python3.12 - I recommend downloading python 3.12.10 and creating a virtual environment as follows:
+```
+python3.12 -mvenv .venv
+source .venv/bin/activate
+```
+
+#### Using local canvas-langchain library
 Note, this will use the remote version of canvas-langchain by default. 
 
 If you wish to develop locally within umgpt, I recommend the following:

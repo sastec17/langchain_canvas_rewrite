@@ -30,20 +30,20 @@ try:
     print("\nDocuments:\n")
     print('\n\n'.join(map(repr, documents)))
 
-    print("\nInvalid files:\n")
-    print(loader.invalid_files)
+#     print("\nInvalid files:\n")
+#     #print(loader.invalid_files)
 
-    print("\nErrors:\n")
-    print(loader.errors)
+#     print("\nErrors:\n")
+#     #print(loader.logger.errors)
 
-    print("\nIndexed:\n")
-    loader.indexed_items.sort()
-    print(loader.indexed_items)
+#     print("\nIndexed:\n")
+#     loader.indexed_items.sort()
+#     #print(loader.indexed_items)
 
-    print("\nProgress:\n")
-    print('\n'.join(
-        [f'{m.level} — {m.message}' for m in loader.get_details('DEBUG')[0]]))
-    print("")
+#     print("\nProgress:\n")
+#    # print('\n'.join(
+#      #   [f'{m.level} — {m.message}' for m in loader.get_details('DEBUG')[0]]))
+#     print("")
 
 except Exception as ex:
     print(loader.get_details('DEBUG'))
