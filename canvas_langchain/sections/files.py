@@ -56,7 +56,7 @@ class FileLoader(BaseSectionLoader):
             self.indexed_items.add(f"File:{file.id}")
             try:
                 content_type = getattr(file, "content-type")
-                self.logger.logStatement(message=f"Loading {content_type} file: {file.filename}", level="DEBUG")
+                self.logger.logStatement(message=f"Loading file: {file.filename}", level="DEBUG")
 
                 if content_type in ["text/plain", "text/rtf"]:
                     return self._load_rtf_or_text_file(file)

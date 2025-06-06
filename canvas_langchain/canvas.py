@@ -103,7 +103,8 @@ class CanvasLoader(BaseLoader):
         module_documents = []
         try:
             modules = self.course.get_modules()
-            module_documents.extend(self.load_module(module) for module in modules)
+            for module in modules:
+                module_documents.extend(self.load_module(module))
 
         except CanvasException as ex:
             self.logger.logStatement(message=f"Canvas exception loading modules. Error: {ex}", level="WARNING")
