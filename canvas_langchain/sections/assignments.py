@@ -12,10 +12,10 @@ class AssignmentLoader(BaseSectionLoader):
         assignment_documents = []
         try:
             assignments = self.course.get_assignments()
-            for doc in assignments:
-                if f"Assignment:{doc.id}" not in self.indexed_items:
-                    self.indexed_items.add(f"Assignment:{doc.id}")
-                    assignment_documents.extend(self.load_assignment(doc, None))
+            for assignment in assignments:
+                if f"Assignment:{assignment.id}" not in self.indexed_items:
+                    self.indexed_items.add(f"Assignment:{assignment.id}")
+                    assignment_documents.extend(self.load_assignment(assignment, None))
 
         except CanvasException as error:
             self.logger.logStatement(message=f"Canvas exception loading assignments {error}",

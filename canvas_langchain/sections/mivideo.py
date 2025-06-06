@@ -1,4 +1,5 @@
 from typing import List
+from requests import HTTPError
 from langchain.docstore.document import Document
 from LangChainKaltura.KalturaCaptionLoader import KalturaCaptionLoader
 from LangChainKaltura.MiVideoAPI import MiVideoAPI
@@ -18,12 +19,18 @@ class MiVideoLoader():
         self.mivideo_api = MiVideoAPI(host=settings.MIVIDEO_API_HOST,
                                       authId=settings.MIVIDEO_API_AUTH_ID,
                                       authSecret=settings.MIVIDEO_API_AUTH_SECRET)
+        self.mivideo_authorized = True
 
 
     def load(self, mivideo_id: str | None) -> List[Document]:
         """Load MiVideo media captions"""
         mivideo_docuements = []
-        self.logger.logStatement(message='Loading MiVideo...\n', level="INFO")
+        self.logger.logStatement(message=f"Loading MiVideo for {mivideo_id}...\n", level="INFO")
+        
+        if not self.mivideo_authorized:
+            self.logger.logStatement(message="MiVideo API prior request unauthorized; skipping caption load", level='INFO')
+            return []
+        
         try:
             if not self.caption_loader:
                 self.caption_loader = self._get_caption_loader()
@@ -46,7 +53,13 @@ class MiVideoLoader():
                     doc.metadata['course_context'] = course_url_template.format(courseId=self.course.id)
 
                 self.indexed_items.add("MiVideo:"+doc.metadata['media_id'])
-
+       
+       # don't attempt to load MiVideo again if user is unauthorized
+        except HTTPError as ex:
+            self.logger.logStatement(message=f"HTTP {ex.response.status_code} error loading MiVideo captions: {ex}", level="INFO")
+            if ex.response.status_code == 401:
+                self.mivideo_authorized = False
+                self.logger.logStatement(message="MiVideo caption request unauthorized. Skipping subsequent requests.", level="INFO")
         except Exception:
             self.logger.logStatement(message=f"Error loading MiVideo content", level="WARNING")
 

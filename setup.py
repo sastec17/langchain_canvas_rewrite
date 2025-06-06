@@ -30,7 +30,7 @@ setup(
         "xlrd",
         "markdown",
         "pytz",
-        'LangChainKaltura @ file:///Users/sastec/Downloads/umichgpt/LangChainKaltura'
+        'LangChainKaltura @ file:///Users/sastec/Downloads/umichgpt/LangChainKaltura',
         "python-dotenv==1.1.0",
     ],
     python_requires=">=3.8.1",

@@ -17,7 +17,8 @@ class PageLoader(BaseSectionLoader):
         try:
             pages = self.course.get_pages(published=True,
                                             include=['body'])
-            page_documents.extend(self.load_page(page) for page in pages)
+            for page in pages:
+                page_documents.extend(self.load_page(page))
 
         except CanvasException:
             self.logger.logStatement(message=f"Canvas exception loading pages", level="WARNING")
