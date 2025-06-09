@@ -30,6 +30,7 @@ class PageLoader(BaseSectionLoader):
         """Loads and formats a single page and its embedded URL(s) content """
         page_docs = []
         if not page.locked_for_user and page.body and f"Page:{page.page_id}" not in self.indexed_items:
+            self.logger.logStatement(message=f"Loading page: {page.title}", level="DEBUG")
             self.indexed_items.add(f"Page:{page.page_id}")                      
 
             page_body, embed_urls = self.parse_html(html=page.body)

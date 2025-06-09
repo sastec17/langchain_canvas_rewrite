@@ -28,7 +28,8 @@ class AssignmentLoader(BaseSectionLoader):
         """Load and format given assignment"""
         assignment_description = ""
         embed_urls = []
-        
+        self.logger.logStatement(message=f"Loading assignment: {assignment.name}", level="DEBUG")
+
         # Custom description from locked module
         if description is not None:
             assignment_description = description

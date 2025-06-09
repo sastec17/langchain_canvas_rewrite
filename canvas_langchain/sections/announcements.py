@@ -16,6 +16,7 @@ class AnnouncementLoader(BaseSectionLoader):
                                                             end_date=date.today().isoformat())
 
             for announcement in announcements:
+                self.logger.logStatement(message=f"Loading announcement: {announcement.title}", level="DEBUG")
                 announcement_text, embed_urls = self.parse_html(html=announcement.message)
                 
                 metadata={"content": announcement_text,
