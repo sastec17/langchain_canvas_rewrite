@@ -1,3 +1,4 @@
+"""Utility functions to load and format embedded urls, extract module metadata"""
 from datetime import datetime, timezone
 from typing import List, Tuple, Dict
 from urllib.parse import urlparse
@@ -28,7 +29,6 @@ def _load_embed_urls(metadata: Dict,
                      embed_urls: List, 
                      mivideo_loader: MiVideoLoader) -> List[Document]:
     """Load MiVideo content from embed urls"""
-    # needs metadata, urls, mivideoloader
     docs = []
     for url in embed_urls:
         mivideo_loader.logger.logStatement(message=f"Loading embed url {url}", level="DEBUG")
@@ -55,14 +55,14 @@ def _get_media_id(url: str, logger: Logger) -> str | None:
 
 
 def get_module_metadata(unlock_time: str) -> Tuple[bool, str]:
-    """Returns whether module is locked AND when it's going to be unlocked"""
+    """Returns if module is locked and corresponding unlock time ("" if unlocked)"""
     locked=False
     formatted_datetime=""
     if unlock_time:
-        # Convert to a timezone-aware datetime object
+        # get formatted unlock time
         formatted_datetime = datetime.strptime(unlock_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         current_time = datetime.now(timezone.utc)
-        # Determine if locked
+        # determine if locked
         locked = current_time < formatted_datetime
 
     return locked, formatted_datetime

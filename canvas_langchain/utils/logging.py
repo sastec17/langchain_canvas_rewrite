@@ -12,8 +12,6 @@ class Logger():
     def __init__(self):
         self.progress = []
         self.errors = []
-        return
-
 
     def logStatement(self, message, level):
         """Log messages and track progress"""

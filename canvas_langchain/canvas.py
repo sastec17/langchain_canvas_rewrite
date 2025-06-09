@@ -1,4 +1,3 @@
-import logging
 from typing import Any, List, Literal
 from canvasapi import Canvas
 from urllib.parse import urljoin
@@ -18,11 +17,9 @@ from canvas_langchain.sections.pages import PageLoader
 from canvas_langchain.sections.syllabus import SyllabusLoader
 from canvas_langchain.base import BaseSectionLoaderVars
 
-#TODO: This is here to prevent conflicts with other classes in UMGPT
+# Prevents conflicts with other classes in UMGPT - Happy to refactor as needed
 class LogStatement(BaseModel):
-    """
-    INFO can be user-facing statements, non-technical and perhaps very high-level
-    """
+    """INFO can be user-facing statements, non-technical and perhaps very high-level"""
     message: Any
     level: Literal['INFO', 'DEBUG', 'WARNING']
 
