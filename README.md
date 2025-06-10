@@ -27,7 +27,6 @@ CANVAS_COURSE_URL_TEMPLATE='https://umich.instructure.com/courses/{courseId}/ext
 CANVAS_USER_ID_OVERRIDE_DEV_ONLY=<OVERRIDE KEY>
 
 # The following are optional
-MIVIDEO_LANGUAGE_CODES_CSV='en-us,en'
 MIVIDEO_CHUNK_SECONDS='120'
 ```
 
@@ -154,28 +153,23 @@ loader = CanvasLoader(
 )
 
 try:
-	documents = loader.load()
+    documents = loader.load()
 
-	print("\nDocuments:\n")
-	print(documents)
+    print("\nDocuments:\n")
+    print('\n\n'.join(map(repr, documents)))
 
-	print("\nInvalid files:\n")
-	print(loader.invalid_files)
-	print("")
+    print("\nInvalid files:\n")
+    print(loader.invalid_files)
 
-	print("\nErrors:\n")
-	print(loader.errors)
-	print("")
+    print("\nErrors:\n")
+    print(loader.logger.errors)
 
-	print("\nIndexed:\n")
-	print(loader.indexed_items)
-	print("")
+    print("\nIndexed:\n")
+    print(sorted(loader.indexed_items))
 
-	print("\nProgress:\n")
-	print(loader.get_details('DEBUG'))
-	print("")
-except Exception:
-	details = loader.get_details('DEBUG')
+except Exception as ex:
+    print(loader.get_details('DEBUG'))
+    print(ex)
 ```
 
 If errors are present, `loader.errors` will contain one list element per error. It will consist of an error message (key named `message`) and if the error pertains to a specific item within canvas, it will list the `entity_type` and the `entity_id` of the resource where the exception occurred.
