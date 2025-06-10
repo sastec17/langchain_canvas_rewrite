@@ -4,6 +4,7 @@ from canvasapi.exceptions import CanvasException
 from langchain.docstore.document import Document
 
 from canvas_langchain.base import BaseSectionLoader, BaseSectionLoaderVars
+from canvasapi.paginated_list import PaginatedList
 
 class PageLoader(BaseSectionLoader):
     def __init__(self, BaseSectionVars: BaseSectionLoaderVars, course_api):
@@ -26,7 +27,7 @@ class PageLoader(BaseSectionLoader):
         return page_documents
 
 
-    def load_page(self, page) -> List[Document]:
+    def load_page(self, page: PaginatedList) -> List[Document]:
         """Loads and formats a single page and its embedded URL(s) content """
         page_docs = []
         if not page.locked_for_user and page.body and f"Page:{page.page_id}" not in self.indexed_items:

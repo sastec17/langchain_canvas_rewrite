@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from canvas_langchain.base import BaseSectionLoaderVars
 
 from canvas_langchain.base import BaseSectionLoader
+from canvasapi.paginated_list import PaginatedList
 from canvasapi.exceptions import CanvasException, ResourceDoesNotExist
 
 from langchain.docstore.document import Document
@@ -50,7 +51,7 @@ class FileLoader(BaseSectionLoader):
         return file_documents
     
 
-    def load_file(self, file) -> List[Document]:
+    def load_file(self, file: PaginatedList) -> List[Document]:
         """Loads given file based on extension"""
         if f"File:{file.id}" not in self.indexed_items:
             self.indexed_items.add(f"File:{file.id}")
@@ -80,7 +81,7 @@ class FileLoader(BaseSectionLoader):
         return []
 
 
-    def _load_rtf_or_text_file(self, file) -> List[Document]:
+    def _load_rtf_or_text_file(self, file: PaginatedList) -> List[Document]:
         """Loads and formats text and rtf file data"""
         file_contents = file.get_contents(binary=False)
         text_document = Document(page_content=file_contents,
@@ -91,7 +92,7 @@ class FileLoader(BaseSectionLoader):
         return [text_document]
 
 
-    def _load_html_file(self, file) -> List[Document]:
+    def _load_html_file(self, file: PaginatedList) -> List[Document]:
         """Loads and formats html file data"""
         file_contents = file.get_contents(binary=False)
         file_text, embed_urls = self.parse_html(html=file_contents)
@@ -104,7 +105,7 @@ class FileLoader(BaseSectionLoader):
         return self.process_data(metadata=metadata, embed_urls=embed_urls)
 
 
-    def _load_pdf_file(self, file):
+    def _load_pdf_file(self, file: PaginatedList) -> List[Document]:
         """Loads given pdf file by page"""
         file_contents = file.get_contents(binary=True)
         docs = []
@@ -129,7 +130,7 @@ class FileLoader(BaseSectionLoader):
         return docs
 
 
-    def _load_file_general(self, file, file_type):
+    def _load_file_general(self, file: PaginatedList, file_type: str) -> List[Document]:
         """Loads docx, excel, pptx, and md files"""
         file_contents = file.get_contents(binary=True)
         docs=[]

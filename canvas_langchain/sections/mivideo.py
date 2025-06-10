@@ -74,7 +74,7 @@ class MiVideoLoader():
                 courseId=str(int(self.course.id)),
                 userId=str(int(getattr(settings, 'CANVAS_USER_ID_OVERRIDE_DEV_ONLY', self.canvas.get_current_user().id))),
                 languages=languages,
-                urlTemplate=settings.MIVIDEO_SOURCE_URL_TEMPLATE,
+                urlTemplate=getattr(settings, 'MIVIDEO_SOURCE_URL_TEMPLATE'),
                 chunkSeconds=int(getattr(settings, 'MIVIDEO_CHUNK_SECONDS', KalturaCaptionLoader.CHUNK_SECONDS_DEFAULT)),
             )
         except Exception:

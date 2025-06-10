@@ -52,7 +52,7 @@ def _get_embed_url_direct(url: str) -> str | None:
     parsed_url = urlparse(url)
     # Verify url matches Canvas LTI 1.1 format:
     # `https://<canvas_ui_hostname>/courses/<course_id>/external_tools/retrieve?url=<embed_url>`
-    canvas_ui_hostname = settings.CANVAS_UI_HOSTNAME or 'umich.instructure.com'
+    canvas_ui_hostname = getattr(settings, 'CANVAS_UI_HOSTNAME', 'umich.instructure.com')
 
     netloc_matches = parsed_url.netloc.lower() == canvas_ui_hostname
     path_starts_correctly = parsed_url.path.lower().startswith('/courses/')

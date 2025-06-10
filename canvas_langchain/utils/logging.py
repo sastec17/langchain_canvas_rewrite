@@ -13,7 +13,7 @@ class Logger():
         self.progress = []
         self.errors = []
 
-    def logStatement(self, message, level):
+    def logStatement(self, message: str, level: str):
         """Log messages and track progress"""
         match level:
             case "INFO":
@@ -26,6 +26,6 @@ class Logger():
         self.progress.append({"message": message, "level": level})
 
 
-    def _filtered_statements_by_level(self, level) -> List:
+    def _filtered_statements_by_level(self, level: str) -> List:
         """Returns statements corresponding to desired output level"""
         return [statement for statement in self.progress if statement.level == level]
