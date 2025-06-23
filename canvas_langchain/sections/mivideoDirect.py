@@ -36,8 +36,8 @@ class MiVideoLoader():
         self.chunkSeconds = 120
         self.urlTemplate = settings.MIVIDEO_SOURCE_URL_TEMPLATE
 
-
-    def load(self) -> List[Document]:
+    # Keep mivideo_id parameter to easily switch versions for testing - TODO: remove later
+    def load(self, mivideo_id: None) -> List[Document]:
         self.logger.logStatement(message="Loading MiVideo directly...", level="INFO")
         try:
             mivideo_documents = []

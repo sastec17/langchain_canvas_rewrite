@@ -3,25 +3,15 @@ import os
 from canvas_langchain.canvas import CanvasLoader
 
 try:
-    from dotenv import load_dotenv  # pip install python-dotenv
+    from django.conf import settings
+except ImportError as err:
+        import settings
 
-    # Load environment variables from `.env` file
-    env_loaded = load_dotenv()
-    if env_loaded:
-        print('Loaded environment variables from ".env" file.')
-    else:
-        print('".env" file is missing, empty, or invalid.')
-except ImportError:
-    print(
-        'Unable to import the "dotenv" module.  Please install it with '
-        '`pip install python-dotenv` to load environment variables from '
-        'a ".env" file.  Otherwise, set them in the environment manually.  '
-        'See ".env.example" for more information.')
 
 loader = CanvasLoader(
-    api_url=os.getenv('TEST_CANVAS_API_URL', 'https://umich.instructure.com'),
-    api_key=os.getenv('TEST_CANVAS_API_KEY'),
-    course_id=int(os.getenv('TEST_CANVAS_COURSE_ID')),
+    api_url=getattr(settings, 'TEST_CANVAS_API_URL', 'https://umich.instructure.com'),
+    api_key=settings.TEST_CANVAS_API_KEY,
+    course_id=int(settings.TEST_CANVAS_COURSE_ID),
 )
 
 try:

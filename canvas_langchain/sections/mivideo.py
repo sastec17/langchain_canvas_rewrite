@@ -1,9 +1,8 @@
 from typing import List
 from requests import HTTPError
 from langchain.docstore.document import Document
-from canvas_langchain.utils.MiVideoTool import KalturaCaptionLoader
-#from LangChainKaltura.MiVideoAPI import MiVideoAPI
-from canvas_langchain.utils.MiVideoTool.MiVideoAPI import MiVideoAPI
+from LangChainKaltura.KalturaCaptionLoader import KalturaCaptionLoader
+from LangChainKaltura.MiVideoAPI import MiVideoAPI
 # compatible with isolated and integrated testing
 try:
     from django.conf import settings
