@@ -12,7 +12,7 @@ from canvas_langchain.utils.process_data import get_module_metadata
 from canvas_langchain.sections.announcements import AnnouncementLoader
 from canvas_langchain.sections.assignments import AssignmentLoader
 from canvas_langchain.sections.files import FileLoader
-from canvas_langchain.sections.mivideo import MiVideoLoader
+from canvas_langchain.sections.mivideoDirect import MiVideoLoader
 from canvas_langchain.sections.pages import PageLoader
 from canvas_langchain.sections.syllabus import SyllabusLoader
 from canvas_langchain.base import BaseSectionLoaderVars

@@ -36,7 +36,7 @@ class AssignmentLoader(BaseSectionLoader):
 
         elif assignment.description:
             assignment_description, embed_urls = self.parse_html(assignment.description)
-                                                                             
+                                                              
         assignment_content = (
             f"Assignment Name: {assignment.name}\n"
             f"Due Date: {assignment.due_at}\n"

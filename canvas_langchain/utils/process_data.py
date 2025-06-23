@@ -21,7 +21,7 @@ def process_data(metadata: Dict, embed_urls: List, mivideo_loader: MiVideoLoader
             metadata=metadata['data']
         ))
     # Load content from embed urls
-    document_arr.extend(_load_embed_urls(metadata=metadata, embed_urls=embed_urls, mivideo_loader=mivideo_loader))
+    # document_arr.extend(_load_embed_urls(metadata=metadata, embed_urls=embed_urls, mivideo_loader=mivideo_loader))
     return document_arr
 
 

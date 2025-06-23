@@ -15,17 +15,17 @@ def parse_html_for_text_and_urls(canvas, course, html, logger):
 
     # Urls will be embedded in iframe tags
     embed_urls = []
-    iframes = bs.find_all('iframe')
-    for iframe in iframes:
-        iframe_src_url = iframe.get('src')
+    # iframes = bs.find_all('iframe')
+    # for iframe in iframes:
+    #     iframe_src_url = iframe.get('src')
 
-        # In LTI 1.3, embed URLS protected by UUID - Must extract 
-        if (embed_url := _get_embed_url_via_uuid(canvas, course, iframe_src_url, logger)):
-            embed_urls.append(embed_url)
+    #     # In LTI 1.3, embed URLS protected by UUID - Must extract 
+    #     if (embed_url := _get_embed_url_via_uuid(canvas, course, iframe_src_url, logger)):
+    #         embed_urls.append(embed_url)
         
-        # In LTI 1.1 embed URLS are linked directly
-        elif (embed_url := _get_embed_url_direct(iframe_src_url)):
-            embed_urls.append(embed_url)
+    #     # In LTI 1.1 embed URLS are linked directly
+    #     elif (embed_url := _get_embed_url_direct(iframe_src_url)):
+    #         embed_urls.append(embed_url)
 
     return doc_text, embed_urls
 
