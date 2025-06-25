@@ -6,6 +6,7 @@ from langchain.docstore.document import Document
 from canvasapi.exceptions import CanvasException
 from langchain_community.document_loaders import UnstructuredURLLoader
 from pydantic import BaseModel
+import time
 
 from canvas_langchain.utils.logging import Logger
 from canvas_langchain.utils.process_data import get_module_metadata
@@ -66,6 +67,7 @@ class CanvasLoader(BaseLoader):
     def load(self) -> List[Document]:
         """Loads all available content from Canvas course"""
         self.logger.logStatement(message="Starting document loading process. \n", level="INFO")
+        start = time.perf_counter()
         try:
             # load syllabus
             self.docs.extend(self.syllabus_loader.load())
@@ -89,7 +91,8 @@ class CanvasLoader(BaseLoader):
                         self.docs.extend(self.file_loader.load_files())
         except Exception as err:
                 self.logger.logStatement(message=f"Error loading Canvas materials {err}", level="WARNING")
-        
+        end = time.perf_counter()
+        self.logger.logStatement(message=f"Document loading process finished in {end - start:.2f} seconds.\n", level="INFO")
         self.logger.logStatement(message="Canvas course processing finished.", level="INFO")
         return self.docs
     
