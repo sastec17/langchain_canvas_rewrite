@@ -45,18 +45,21 @@ class MiVideoLoader():
             # Extract parent ID for course
             self.categoryFilter.fullNameIn = f"Canvas_Umich>Site>Channels>{self.course.id}>inContext"
             result = self.client.category.list(self.categoryFilter, self.pager)
-            
-            # TODO: Test this works in all cases
+            totalNumEntries = result.totalCount
+
             # Extract all videos for course
+            if totalNumEntries == 0:
+                 return mivideo_documents
             self.mediaFilter.categoriesIdsMatchAnd = result.objects[0].parentId
             mediaEntries = self.client.media.list(self.mediaFilter, self.pager)
-            
-            if not mediaEntries.objects:
+
+            if mediaEntries.totalCount == 0:
                 self.mediaFilter.categoriesIdsMatchAnd = result.objects[0].id
                 mediaEntries = self.client.media.list(self.mediaFilter, self.pager)
 
-            mediaMapping = {entry.id:entry.name for entry in mediaEntries.objects}
+            assert(mediaEntries.totalCount != totalNumEntries), "No media entries found for the course."
 
+            mediaMapping = {entry.id:entry.name for entry in mediaEntries.objects}
             mivideo_id_list = [entry.id for entry in mediaEntries.objects]
             # Extract captions for each video
             self.captionFilter.entryIdIn = ','.join(mivideo_id_list)
